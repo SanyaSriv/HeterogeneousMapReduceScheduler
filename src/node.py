@@ -44,18 +44,11 @@ class Node:
     def __init__(self, node_id, total_tick, tick_latency, tick_rate_rangeA, tick_rate_rangeB, sched):
         # initializing everything for now
         self.node_id = node_id
-        self.progress_score = 0
-        self.time_to_completion = 0
-        self.progress_rate = 0
-        # this should be False be default - should be determined dynamically
         self.slow_status = False 
         self.total_tick = total_tick
         self.tick_rate = random.uniform(tick_rate_rangeA, tick_rate_rangeB)
         self.tick_latency = tick_latency
         self.sched = sched
-
-    def update_time_to_completion(self):
-        self.time_to_completion = (1 - self.progress_score) / self.progress_rate
 
     def execute_map_task(self):
         temp_ticks = self.total_tick
