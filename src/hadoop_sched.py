@@ -9,6 +9,7 @@ class NaiveScheduler:
         self.slow_tasks = []
         self.tasks = tasks
         self.threshold = threshold # to decide which task is slow
+        self.id = "naive"
 
     def assign_map_tasks(self):
         """Function to assign map tasks to workers."""

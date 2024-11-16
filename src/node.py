@@ -5,12 +5,16 @@ that will execute the map/reduce tasks.
 """
 
 import random
+import sleep
 
 class NodeCluster:
     def __init__(self, num_nodes, tick_latency):
         self.num_nodes = num_nodes
-        self.node_pool = []
+        self.node_pool = {}
         self.tick_latency = tick_latency
+    
+    def set_scheduler(self, scheduler):
+        self.sched = scheduler # can be late or hadoop
 
     def init_homogeneous_nodes(self):
         """
@@ -27,7 +31,7 @@ class NodeCluster:
             if i in straggler_list:
                 rangeA = 0.1 # can adjust it later
                 rangeB = 1.5 # can adjust it later
-            self.node_pool = Node(100, self.tick_latency, rangeA, rangeB) # setting it at 100 by default for now
+            self.node_pool[i] = Node(i, 100, self.tick_latency, rangeA, rangeB, self.sched) # setting it at 100 by default for now
 
     def init_heterogeneous_nodes(self, json_node_config):
         """
@@ -36,12 +40,10 @@ class NodeCluster:
         should be equal to the self.num_nodes parameter.
         """
         pass
-
-#TODO: add all the correct arguments to these node classes.
-# As of now, I have just defined a basic skeleton structure. 
 class Node:
-    def __init__(self, total_tick, tick_latency, tick_rate_rangeA, tick_rate_rangeB):
+    def __init__(self, node_id, total_tick, tick_latency, tick_rate_rangeA, tick_rate_rangeB, sched):
         # initializing everything for now
+        self.node_id = node_id
         self.progress_score = 0
         self.time_to_completion = 0
         self.progress_rate = 0
@@ -50,12 +52,18 @@ class Node:
         self.total_tick = total_tick
         self.tick_rate = random.uniform(tick_rate_rangeA, tick_rate_rangeB)
         self.tick_latency = tick_latency
+        self.sched = sched
 
     def update_time_to_completion(self):
         self.time_to_completion = (1 - self.progress_score) / self.progress_rate
 
     def execute_map_task(self):
-        pass
+        temp_ticks = self.total_tick
+        while temp_ticks > 0:
+            temp_ticks -= self.tick_rate
+            sleep(self.tick_latency)
+            if self.sched.id == "late":
+                ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
 
     def execute_reduce_task(self):
         pass
