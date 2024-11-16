@@ -36,9 +36,9 @@ class Node:
     def update_time_to_completion(self):
         self.time_to_completion = (1 - self.progress_score) / self.progress_rate
 
-    def assign_map_task(self, mtask):
+    def execute_map_task(self, mtask):
         pass
 
-    def assign_reduce_task(self, rtask):
+    def execute_reduce_task(self, rtask):
         pass
 
