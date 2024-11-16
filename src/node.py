@@ -9,14 +9,14 @@ class NodeCluster:
         self.num_nodes = num_nodes
         self.slow_N_Threshold = slow_N_Threshold
 
-    def make_homogeneous_nodes():
+    def init_homogeneous_nodes():
         """
         This function should make homogeneous self.num_nodes number of nodes.
         Every node should have the same properties. 
         """
         pass
 
-    def make_heterogeneous_nodes(json_node_config):
+    def init_heterogeneous_nodes(json_node_config):
         """
         This function would take a JSON node configuraion and would
         make heterogenous nodes. The number of nodes in the configuration
