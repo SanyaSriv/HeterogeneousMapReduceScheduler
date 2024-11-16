@@ -9,7 +9,7 @@ class LateScheduler:
         self.slow_tasks = []
         self.tasks = tasks
         self.slow_N_Threshold = slow_N_threshold
-
+    
     def assign_map_tasks(self):
         """Function to assign map tasks to workers."""
         pass
