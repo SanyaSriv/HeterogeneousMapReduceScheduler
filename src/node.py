@@ -5,9 +5,8 @@ that will execute the map/reduce tasks.
 """
 
 class NodeCluster:
-    def __init__(self, num_nodes, slow_N_Threshold):
+    def __init__(self, num_nodes):
         self.num_nodes = num_nodes
-        self.slow_N_Threshold = slow_N_Threshold
 
     def init_homogeneous_nodes():
         """
