@@ -32,6 +32,7 @@ class Node:
         self.progress_score = 0
         self.time_to_completion = 0
         self.progress_rate = 0
+        self.slow_status = False # this should be False be default
 
     def update_time_to_completion(self):
         self.time_to_completion = (1 - self.progress_score) / self.progress_rate
@@ -41,4 +42,10 @@ class Node:
 
     def execute_reduce_task(self, rtask):
         pass
+
+    def set_slow_status(self):
+        self.slow_status = True
+    
+    def remove_slow_status(self):
+        self.slow_status = False
 
