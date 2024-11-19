@@ -9,12 +9,12 @@ import sleep
 
 class NodeCluster:
     def __init__(self, num_nodes, tick_latency):
-        self.num_nodes = num_nodes
-        self.node_pool = {}
-        self.tick_latency = tick_latency
+        self.num_nodes = num_nodes # number of nodes (workers) to establish
+        self.node_pool = {} # key: node ID, value: class instance
+        self.tick_latency = tick_latency # amount of latency associated with every tick
     
     def set_scheduler(self, scheduler):
-        self.sched = scheduler # can be late or hadoop
+        self.sched = scheduler # can be late or hadoop (naive)
 
     def init_homogeneous_nodes(self):
         """
@@ -33,6 +33,14 @@ class NodeCluster:
                 rangeB = 1.5 # can adjust it later
             self.node_pool[i] = Node(i, 100, self.tick_latency, rangeA, rangeB, self.sched) # setting it at 100 by default for now
 
+    def set_slow_status(self, node_id):
+        self.node_pool[node_id].mark_slow()
+
+    def remove_slow_status(self, node_id):
+        self.node_pool[node_id].remove_slow()
+
+    # TODO: We are yet to implement this heterogenous configuration. We first aim to develop the
+    # base LATE scheduler, and then add heterogeinity if time permits. 
     def init_heterogeneous_nodes(self, json_node_config):
         """
         This function would take a JSON node configuraion and would
@@ -58,12 +66,29 @@ class Node:
             if self.sched.id == "late":
                 ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
 
-    def execute_reduce_task(self):
-        pass
+    # TODO: According to this current implementation, the map task will execute in the same
+    # time as the shufle task. Do we want to manipulate this? 
+    # We can give more/less weightage to the other by manipulating the self.tick_rate parameter. 
+    # We can make 3 such parameters - one for shuffle, other for map, and then another for reduce.
+    def execute_shuffle_task(self):
+        temp_ticks = self.total_tick
+        while temp_ticks > 0:
+            temp_ticks -= self.tick_rate
+            sleep(self.tick_latency)
+            if self.sched.id == "late":
+                ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
 
-    def set_slow_status(self):
+    def execute_reduce_task(self):
+        temp_ticks = self.total_tick
+        while temp_ticks > 0:
+            temp_ticks -= self.tick_rate
+            sleep(self.tick_latency)
+            if self.sched.id == "late":
+                ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
+
+    def mark_slow(self):
         self.slow_status = True
     
-    def remove_slow_status(self):
+    def remove_slow(self):
         self.slow_status = False
 
