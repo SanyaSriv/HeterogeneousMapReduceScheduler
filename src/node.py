@@ -82,6 +82,8 @@ class Node:
             sleep(self.tick_latency)
             if self.sched.id in ["late", "hadoop"]:
                 ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
+        # once it is done, it should add a copy task to the list of tasks
+
     
     def execute_copy_task(self):
         temp_ticks = self.COPY_TOTAL_TICK
@@ -90,6 +92,8 @@ class Node:
             sleep(self.tick_latency)
             if self.sched.id in ["late", "hadoop"]:
                 ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
+        # once it is done, it should add a sort task to the list of tasks
+        self.sched.add_task()
 
     def execute_sort_task(self):
         temp_ticks = self.SORT_TOTAL_TICK
@@ -98,6 +102,7 @@ class Node:
             sleep(self.tick_latency)
             if self.sched.id in ["late", "hadoop"]:
                 ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
+        # once it is done, it should add a sort task to the list of tasks
 
     def execute_reduce_task(self):
         temp_ticks = self.REDUCE_TOTAL_TICK
@@ -106,6 +111,8 @@ class Node:
             sleep(self.tick_latency)
             if self.sched.id in ["late", "hadoop"]:
                 ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
+        # once it is done, it would not add any more tasks
+
 
     def mark_slow(self):
         self.slow_status = True
