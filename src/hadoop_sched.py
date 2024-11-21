@@ -2,7 +2,7 @@
 This file contains the hadoop scheduler class. 
 """
 
-class NaiveScheduler:
+class HadoopScheduler:
     def __init__(self, node_cluster, tasks, threshold):
         self.node_cluster = node_cluster
         self.failed_tasks = [] # prioritized over slow tasks
