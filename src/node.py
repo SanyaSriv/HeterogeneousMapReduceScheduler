@@ -4,15 +4,24 @@ individual node class. The cluster is a collection of workers/nodes
 that will execute the map/reduce tasks. 
 """
 
+# TODO: According to this current implementation, the map task will execute in the same
+    # time as the shufle task. Do we want to manipulate this? 
+    # We can give more/less weightage to the other by manipulating the self.tick_rate parameter. 
+    # We can make 3 such parameters - one for shuffle, other for map, and then another for reduce.
+
 import random
 import sleep
 
 class NodeCluster:
-    def __init__(self, num_nodes, tick_latency):
+    def __init__(self, num_nodes, tick_latency, map_total_tick, reduce_total_tick, copy_total_tick, sort_total_tick):
         self.num_nodes = num_nodes # number of nodes (workers) to establish
         self.node_pool = {} # key: node ID, value: class instance
         self.tick_latency = tick_latency # amount of latency associated with every tick
-    
+        self.MAP_TOTAL_TICK = map_total_tick
+        self.REDUCE_TOTAL_TICK = reduce_total_tick
+        self.COPY_TOTAL_TICK = copy_total_tick
+        self.SORT_TOTAL_TICK = sort_total_tick
+
     def set_scheduler(self, scheduler):
         self.sched = scheduler # can be late or hadoop (naive)
 
@@ -31,7 +40,11 @@ class NodeCluster:
             if i in straggler_list:
                 rangeA = 0.1 # can adjust it later
                 rangeB = 1.5 # can adjust it later
-            self.node_pool[i] = Node(i, 100, self.tick_latency, rangeA, rangeB, self.sched) # setting it at 100 by default for now
+            self.node_pool[i] = Node(i, 
+                                    self.MAP_TOTAL_TICK, self.REDUCE_TOTAL_TICK, self.COPY_TOTAL_TICK, self.SORT_TOTAL_TICK,
+                                    self.tick_latency, 
+                                    rangeA, rangeB, 
+                                    self.sched) # setting it at 100 by default for now
 
     def set_slow_status(self, node_id):
         self.node_pool[node_id].mark_slow()
@@ -49,41 +62,49 @@ class NodeCluster:
         """
         pass
 class Node:
-    def __init__(self, node_id, total_tick, tick_latency, tick_rate_rangeA, tick_rate_rangeB, sched):
-        # initializing everything for now
+    def __init__(self, node_id, map_total_tick, reduce_total_tick,
+                copy_total_tick, sort_total_tick, total_tick, tick_latency, tick_rate_rangeA, tick_rate_rangeB, sched):
         self.node_id = node_id
         self.slow_status = False 
         self.total_tick = total_tick
         self.tick_rate = random.uniform(tick_rate_rangeA, tick_rate_rangeB)
         self.tick_latency = tick_latency
         self.sched = sched
+        self.MAP_TOTAL_TICK = map_total_tick
+        self.REDUCE_TOTAL_TICK = reduce_total_tick
+        self.COPY_TOTAL_TICK = copy_total_tick
+        self.SORT_TOTAL_TICK = sort_total_tick
 
     def execute_map_task(self):
-        temp_ticks = self.total_tick
+        temp_ticks = self.MAP_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
             sleep(self.tick_latency)
-            if self.sched.id == "late":
+            if self.sched.id in ["late", "hadoop"]:
+                ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
+    
+    def execute_copy_task(self):
+        temp_ticks = self.COPY_TOTAL_TICK
+        while temp_ticks > 0:
+            temp_ticks -= self.tick_rate
+            sleep(self.tick_latency)
+            if self.sched.id in ["late", "hadoop"]:
                 ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
 
-    # TODO: According to this current implementation, the map task will execute in the same
-    # time as the shufle task. Do we want to manipulate this? 
-    # We can give more/less weightage to the other by manipulating the self.tick_rate parameter. 
-    # We can make 3 such parameters - one for shuffle, other for map, and then another for reduce.
-    def execute_shuffle_task(self):
-        temp_ticks = self.total_tick
+    def execute_sort_task(self):
+        temp_ticks = self.SORT_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
             sleep(self.tick_latency)
-            if self.sched.id == "late":
+            if self.sched.id in ["late", "hadoop"]:
                 ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
 
     def execute_reduce_task(self):
-        temp_ticks = self.total_tick
+        temp_ticks = self.REDUCE_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
             sleep(self.tick_latency)
-            if self.sched.id == "late":
+            if self.sched.id in ["late", "hadoop"]:
                 ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
 
     def mark_slow(self):
