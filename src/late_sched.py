@@ -21,6 +21,7 @@ class LateScheduler:
                                                 "progress_score": 0,
                                                 "time_to_completion": 0,
                                                 "progress_rate": 0}
+        self.map_tasks_remaining = 0 # TODO: updated it when you launch a task; decrement it when a map tasks finishes
 
     def update_node_progress(self, node_id, ticks_done, total_ticks):
         """Function to change the progress stats of a node"""
@@ -34,9 +35,9 @@ class LateScheduler:
         elif time_to_completion > self.slow_N_Threshold:
             self.node_cluster.remove_slow_status(node_id)
             # TODO: confirm if this is the point where we add a task to the slow task pile
-            self.slow_tasks[]
+            self.slow_tasks = []
     
-    def assign_map_tasks(self):
+    def assign_tasks(self):
         """Function to assign map tasks to workers."""
         while (len(self.tasks) > 0):
             for task in self.tasks:
@@ -44,12 +45,19 @@ class LateScheduler:
                     pass
                     # we need to launch a thread
                     # assign a job to one of the available workers
-                elif self.task[task]["type"] == "shufle":
+                elif self.task[task]["type"] == "copy":
+                    pass
+                    # we need to launch a thread
+                    # assign a job to one of the available workers
+                elif self.task[task]["type"] == "sort":
                     pass
                     # we need to launch a thread
                     # assign a job to one of the available workers
                 elif self.task[task]["type"] == "reduce":
+                    if self.map_tasks_remaining > 0:
+                        continue;
                     pass
+                    # make sure all the map tasks have finished first
                     # we need to launch a thread
                     # assign a job to one of the workers
             
