@@ -11,7 +11,17 @@ class HadoopScheduler:
         self.threshold = threshold # to decide which task is slow
         self.id = "hadoop"
         self.map_tasks_remaining = []
-
+        self.available_nodes = []
+        self.node_progress_stats = {}
+        for node_id in self.node_cluster.node_pool:
+            # TODO, I am not sure how to initialize these attributes
+            self.node_progress_stats[node_id] = {"working": False, # the nodes are not working by default
+                                                 "task_id": -1, # set it to the apt task id
+                                                "progress_score": 0,
+                                                "time_to_completion": 0,
+                                                "progress_rate": 0}
+            self.available_nodes.append(node_id)
+            
     def assign_tasks(self):
         """Function to assign map tasks to workers."""
         while (len(self.tasks) > 0):

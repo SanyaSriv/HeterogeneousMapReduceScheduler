@@ -13,6 +13,7 @@ class LateScheduler:
         # once, we assign this task to a node, we will have to change the assign parameter
         self.tasks = tasks
         self.slow_N_Threshold = slow_N_threshold
+        self.available_nodes = []
         self.id = "late"
         for node_id in self.node_cluster.node_pool:
             # TODO, I am not sure how to initialize these attributes
@@ -21,6 +22,7 @@ class LateScheduler:
                                                 "progress_score": 0,
                                                 "time_to_completion": 0,
                                                 "progress_rate": 0}
+            self.available_nodes.append(node_id)
         self.map_tasks_remaining = [] # TODO: updated it when you launch a task; decrement it when a map tasks finishes
 
     def update_node_progress(self, node_id, ticks_done, total_ticks):
