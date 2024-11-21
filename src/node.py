@@ -10,8 +10,7 @@ that will execute the map/reduce tasks.
     # We can make 3 such parameters - one for shuffle, other for map, and then another for reduce.
 
 import random
-import sleep
-
+import time
 class NodeCluster:
     def __init__(self, num_nodes, tick_latency, map_total_tick, reduce_total_tick, copy_total_tick, sort_total_tick):
         self.num_nodes = num_nodes # number of nodes (workers) to establish
@@ -31,7 +30,7 @@ class NodeCluster:
         Every node should have the same properties. 
         """
         # we need to have atleast 1 straggler
-        number_of_straglers = random.randint(1, self.num_nodes / 2)
+        number_of_straglers = random.randint(1, int(self.num_nodes / 2))
         # generate which node IDs will become stragglers
         straggler_list = [random.randint(0, self.num_nodes-1) for _ in range(number_of_straglers)]
         for i in range(0, self.num_nodes):
@@ -63,10 +62,9 @@ class NodeCluster:
         pass
 class Node:
     def __init__(self, node_id, map_total_tick, reduce_total_tick,
-                copy_total_tick, sort_total_tick, total_tick, tick_latency, tick_rate_rangeA, tick_rate_rangeB, sched):
+                copy_total_tick, sort_total_tick, tick_latency, tick_rate_rangeA, tick_rate_rangeB, sched):
         self.node_id = node_id
         self.slow_status = False 
-        self.total_tick = total_tick
         self.tick_rate = random.uniform(tick_rate_rangeA, tick_rate_rangeB)
         self.tick_latency = tick_latency
         self.sched = sched
@@ -75,40 +73,42 @@ class Node:
         self.COPY_TOTAL_TICK = copy_total_tick
         self.SORT_TOTAL_TICK = sort_total_tick
 
-    def execute_map_task(self):
+    def execute_map_task(self, task_id):
         temp_ticks = self.MAP_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
-            sleep(self.tick_latency)
+            time.sleep(self.tick_latency)
             if self.sched.id in ["late", "hadoop"]:
                 ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
         # once it is done, it should add a copy task to the list of tasks
-
+        self.sched.mark_map_task_finished()
+        self.sched.add_task(str(task_id) + "_cpy", {"type": "copy"})
     
-    def execute_copy_task(self):
+    def execute_copy_task(self, task_id):
         temp_ticks = self.COPY_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
-            sleep(self.tick_latency)
+            time.sleep(self.tick_latency)
             if self.sched.id in ["late", "hadoop"]:
                 ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
         # once it is done, it should add a sort task to the list of tasks
-        self.sched.add_task()
+        self.sched.add_task(str(task_id) + "_sort", {"type": "sort"})
 
-    def execute_sort_task(self):
+    def execute_sort_task(self, task_id):
         temp_ticks = self.SORT_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
-            sleep(self.tick_latency)
+            time.sleep(self.tick_latency)
             if self.sched.id in ["late", "hadoop"]:
                 ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
-        # once it is done, it should add a sort task to the list of tasks
+        # once it is done, it should add a reduce task to the list of tasks
+        self.sched.add_task(str(task_id) + "_red", {"type": "reduce"})
 
-    def execute_reduce_task(self):
+    def execute_reduce_task(self, task_id):
         temp_ticks = self.REDUCE_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
-            sleep(self.tick_latency)
+            time.sleep(self.tick_latency)
             if self.sched.id in ["late", "hadoop"]:
                 ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
         # once it is done, it would not add any more tasks
