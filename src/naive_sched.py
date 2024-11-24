@@ -122,8 +122,3 @@ class NaiveScheduler:
         time_taken = end_time - start_time
 
         self.print_stats(time_taken)
-        
-
-
-            
-

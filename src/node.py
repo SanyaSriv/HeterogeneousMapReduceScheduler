@@ -119,4 +119,3 @@ class Node:
     
     def remove_slow(self):
         self.slow_status = False
-
