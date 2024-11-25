@@ -95,7 +95,7 @@ class HadoopScheduler:
                                 elif task["type"] == "reduce":
                                     thread = threading.Thread(target=worker.execute_reduce_task, args=(tid,1))
                                     self.worker_threads[node_id] = thread
-                                    form_log(f"DUP-RED-BEGIN: [ORIG_NODE:{nid}] : [NODE:{node_id}] : [TASK:{tid}]]")
+                                    form_log(f"DUP-RED-BEGIN: [ORIG_NODE:{nid}] : [NODE:{node_id}] : [TASK:{tid}]")
                                     thread.start()
                         break
             if len(self.regular_tasks) == 0 and len(self.running_tasks) == 0 and len(self.duplicate_tasks) == 0:
