@@ -80,7 +80,7 @@ class HadoopScheduler:
                         with self.lock_tasks: 
                             if self.node_progress_stats[nid]["progress_score"] < self.threshold and self.node_progress_stats[nid]["task_id"] != -1 and len(self.running_tasks) != 0:   
                                 tid = self.node_progress_stats[nid]["task_id"] #task_id
-                                if tid in self.duplicate_tasks:
+                                if tid in self.duplicate_tasks or tid not in self.running_tasks:
                                     break
                                 task = self.running_tasks[tid][0]
                                 self.duplicate_tasks[tid] = [task,0]
