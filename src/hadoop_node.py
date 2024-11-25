@@ -53,7 +53,7 @@ class NodeCluster:
                                     self.tick_latency, 
                                     rangeA, rangeB, 
                                     self.sched) # setting it at 100 by default for now
-
+            form_log(f"CREATE-NODE: [NODE:{i}]")
     def set_slow_status(self, node_id):
         self.node_pool[node_id].mark_slow()
 
