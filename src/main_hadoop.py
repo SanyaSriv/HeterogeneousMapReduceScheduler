@@ -2,7 +2,7 @@ import hadoop_sched
 import hadoop_node
 import threading
 # making a node cluster here
-node_cluster = hadoop_node.NodeCluster(5, 0.5, 15, 10, 10, 5)
+node_cluster = hadoop_node.NodeCluster(5, 0.5, 5, 3, 2, 1)
 
 # defining the tasks here
 tasks = {"0": {"type": "map"},
@@ -13,7 +13,7 @@ tasks = {"0": {"type": "map"},
          "5": {"type": "map"}}
 
 # making the scheduler instance here
-sched = hadoop_sched.HadoopScheduler(tasks, 0.3)
+sched = hadoop_sched.HadoopScheduler(tasks, 0.9)
 
 node_cluster.set_scheduler(sched)
 node_cluster.init_homogeneous_nodes()

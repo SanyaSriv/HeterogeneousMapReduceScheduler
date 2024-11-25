@@ -50,69 +50,63 @@ class HadoopScheduler:
             if len(self.regular_tasks) != 0:
                 for tid in self.regular_tasks:
                     task = self.regular_tasks[tid]
-                    if len(self.available_nodes) != 0:
-                        with self.lock_nodes:
+                    with self.lock_nodes:
+                        if len(self.available_nodes) != 0:
                             node_id = self.available_nodes.pop()
                             print("pop node", self.available_nodes)
                             worker = self.node_cluster.node_pool[node_id]
-                        with self.lock_tasks:
-                            print("Pop task")
-                            self.regular_tasks.pop(tid)
-                            self.running_tasks[tid] = [task, 0]
-                        if task["type"] == "map":
-                            print("Assign Map job", tid, node_id)
-                            thread = threading.Thread(target=worker.execute_map_task, args=(tid,0))
-                            self.worker_threads[node_id] = thread
-                            thread.start()
-                        elif task["type"] == "reduce":
-                            print("Assign Reduce job", tid)
-                            thread = threading.Thread(target=worker.execute_reduce_task, args=(tid,0))
-                            self.worker_threads[node_id] = thread
-                            thread.start()
-                    break
-            else:
-                if len(self.available_nodes) != 0:
-                    with self.lock_nodes:
-                        node_id = self.available_nodes.pop()
-                        worker = self.node_cluster.node_pool[node_id]
-                    for nid in self.node_progress_stats:
-                        if self.node_progress_stats[nid]["progress_score"] < self.threshold and self.node_progress_stats[nid]["task_id"] != -1:
-                
-                            tid = self.node_progress_stats[nid]["task_id"]
-                            if tid in self.duplicate_tasks:
-                                break
-                            task = self.running_tasks[tid][0]
-                            print("assigning dup task", tid, self.running_tasks[tid], self.node_progress_stats[nid]["progress_score"])
                             with self.lock_tasks:
-                                self.duplicate_tasks[tid] = [task,0]
+                                print("Pop task")
+                                self.regular_tasks.pop(tid)
+                                self.running_tasks[tid] = [task, 0]
                             if task["type"] == "map":
-                                thread = threading.Thread(target=worker.execute_map_task, args=(tid,1))
+                                print("Assign Map job", tid, node_id)
+                                thread = threading.Thread(target=worker.execute_map_task, args=(tid,0))
                                 self.worker_threads[node_id] = thread
                                 thread.start()
                             elif task["type"] == "reduce":
-                                thread = threading.Thread(target=worker.execute_reduce_task, args=(tid,1))
+                                print("Assign Reduce job", tid)
+                                thread = threading.Thread(target=worker.execute_reduce_task, args=(tid,0))
                                 self.worker_threads[node_id] = thread
                                 thread.start()
-                            
-                            break
-            if len(self.regular_tasks) == 0 and len(self.running_tasks) == 0:
+                    break
+            else:
+                if len(self.available_nodes) != 0:
+                    for nid in self.node_progress_stats:
+                        with self.lock_tasks: 
+                            if self.node_progress_stats[nid]["progress_score"] < self.threshold and self.node_progress_stats[nid]["task_id"] != -1 and len(self.running_tasks) != 0:   
+                                tid = self.node_progress_stats[nid]["task_id"]
+                                if tid in self.duplicate_tasks:
+                                    break
+                                task = self.running_tasks[tid][0]
+                                self.duplicate_tasks[tid] = [task,0]
+                                with self.lock_nodes:
+                                    node_id = self.available_nodes.pop()
+                                    worker = self.node_cluster.node_pool[node_id]
+                                if task["type"] == "map":
+                                    thread = threading.Thread(target=worker.execute_map_task, args=(tid,1))
+                                    self.worker_threads[node_id] = thread
+                                    thread.start()
+                                elif task["type"] == "reduce":
+                                    thread = threading.Thread(target=worker.execute_reduce_task, args=(tid,1))
+                                    self.worker_threads[node_id] = thread
+                                    thread.start()
+                        break
+            if len(self.regular_tasks) == 0 and len(self.running_tasks) == 0 and len(self.duplicate_tasks) == 0:
                 break
 
 
     def generate_next_tasks(self):
         while(True):
             for tid in self.running_tasks:
-                if self.running_tasks[tid][1] == 1 or (tid in self.duplicate_tasks and self.duplicate_tasks[tid][1] == 1):
-                    print("before sleep", self.available_nodes)
-                    time.sleep(1)  
-                    self.task_completion_flag[tid] = True
-                    with self.lock_tasks:
+                with self.lock_tasks:
+                    if self.running_tasks[tid][1] == 1 or (tid in self.duplicate_tasks and self.duplicate_tasks[tid][1] == 1):
+                        time.sleep(1)  
                         if self.running_tasks[tid][0]["type"] == "map":
                             self.task_id += 1
                             self.num_completion += 1
                             self.regular_tasks[self.task_id] = {"type": "reduce"}
-                            print("Generating new reduce tasks")
-
+                            print("Generating new reduce tasks", self.task_id)
 
                         if self.running_tasks[tid][1] == 0:
                             print("finished before running finish")
@@ -122,5 +116,7 @@ class HadoopScheduler:
                                 print("finished before dup finish")
                             self.duplicate_tasks.pop(tid)
                 break
-            if len(self.regular_tasks) == 0 and len(self.running_tasks) == 0:
+            if len(self.regular_tasks) == 0 and len(self.running_tasks) == 0 and len(self.duplicate_tasks) == 0:
+                assert(len(self.task_completion_flag) == self.task_id + 1)
+                print("final:",self.available_nodes)
                 break

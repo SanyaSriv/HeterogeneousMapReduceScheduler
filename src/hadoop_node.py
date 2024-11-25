@@ -83,23 +83,21 @@ class Node:
                 with self.sched.lock_nodes:
                     self.sched.available_nodes.append(self.node_id)
                     print("Redundant Map task aborted",task_id, self.node_id, self.sched.available_nodes)
-                return
+                    return
             temp_ticks -= self.tick_rate
-            time.sleep(self.tick_latency * 1.01 * len(self.sched.duplicate_tasks))
+            time.sleep(self.tick_latency * 1.01 ** (len(self.sched.duplicate_tasks)+1))
             t += self.tick_latency
             if self.sched.id in ["late", "hadoop"]:
-                ret = self.sched.update_node_progress(self.node_id,(1 - temp_ticks/self.MAP_TOTAL_TICK)/2, t, task_id, dup)
+                ret = self.sched.update_node_progress(self.node_id,(1 - temp_ticks/self.MAP_TOTAL_TICK), t, task_id, dup)
         # once it is done, it should add a copy task to the list of tasks
         if dup:
             self.sched.duplicate_tasks[task_id][1] = 1
         else:
             self.sched.running_tasks[task_id][1] = 1
+        self.sched.task_completion_flag[task_id] = True
         with self.sched.lock_nodes:
-            print(self.sched.available_nodes)
             self.sched.available_nodes.append(self.node_id)
             print("Map done", task_id, self.node_id, dup, self.sched.available_nodes)
-        # self.sched.mark_map_task_finished()
-        # self.sched.add_task(str(task_id) + "_cpy", {"type": "copy"})
     
     def execute_reduce_task(self, task_id, dup):
         t=0
@@ -108,13 +106,13 @@ class Node:
             if task_id in self.sched.task_completion_flag:
                 with self.sched.lock_nodes:
                     self.sched.available_nodes.append(self.node_id)
-                print("Redundant reduce task aborted in copy phase")
-                return
+                    print("Redundant reduce task aborted in copy phase")
+                    return
             temp_ticks -= self.tick_rate
-            time.sleep(self.tick_latency * 1.01 * len(self.sched.duplicate_tasks))
+            time.sleep(self.tick_latency * 1.01 ** (len(self.sched.duplicate_tasks)+1))
             t += self.tick_latency
             if self.sched.id in ["late", "hadoop"]:
-                ret = self.sched.update_node_progress(self.node_id, 0.5 + (1-temp_ticks/self.COPY_TOTAL_TICK)/3, t, task_id, dup)
+                ret = self.sched.update_node_progress(self.node_id, (1-temp_ticks/self.COPY_TOTAL_TICK)/3, t, task_id, dup)
 
         print("Copy done", task_id, self.sched.available_nodes)
 
@@ -123,36 +121,42 @@ class Node:
             if task_id in self.sched.task_completion_flag:
                 with self.sched.lock_nodes:
                     self.sched.available_nodes.append(self.node_id)
-                print("Redundant reduce task aborted in sort phase")
-                return
+                    print("Redundant reduce task aborted in sort phase")
+                    return
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency)
             t += self.tick_latency
             if self.sched.id in ["late", "hadoop"]:
-                ret = self.sched.update_node_progress(self.node_id, 0.5 + 1/3 + (1-temp_ticks/self.SORT_TOTAL_TICK)/3, t, task_id, dup)
+                ret = self.sched.update_node_progress(self.node_id, 1/3 + (1-temp_ticks/self.SORT_TOTAL_TICK)/3, t, task_id, dup)
+        print("Sort done", task_id, self.sched.available_nodes)
 
-        if self.sched.num_completion == self.sched.map_num:
-            temp_ticks = self.REDUCE_TOTAL_TICK
-            while temp_ticks > 0:
-                if task_id in self.sched.task_completion_flag:
-                    with self.sched.lock_nodes:
-                        self.sched.available_nodes.append(self.node_id)
+        while True:
+            if self.sched.num_completion == self.sched.map_num:
+                break
+
+        temp_ticks = self.REDUCE_TOTAL_TICK
+        while temp_ticks > 0:
+            if task_id in self.sched.task_completion_flag:
+                with self.sched.lock_nodes:
+                    self.sched.available_nodes.append(self.node_id)
                     print("Redundant reduce task aborted")
                     return
-                temp_ticks -= self.tick_rate
-                time.sleep(self.tick_latency)
-                t += self.tick_latency
-                if self.sched.id in ["late", "hadoop"]:
-                    ret = self.sched.update_node_progress(self.node_id, 0.5 + 2/3 + (1-temp_ticks/self.REDUCE_TOTAL_TICK)/3, t, task_id, dup)
-            if task_id not in self.sched.task_completion_flag:
-                if dup:
-                    self.sched.duplicate_tasks[task_id][1] = 1
-                else:
-                    self.sched.running_tasks[task_id][1] = 1
-            with self.sched.lock_nodes:
-                self.sched.available_nodes.append(self.node_id)
-            # once it is done, it would not add any more tasks
-            print("Red Done", task_id, self.node_id, self.sched.available_nodes)
+            temp_ticks -= self.tick_rate
+            time.sleep(self.tick_latency)
+            t += self.tick_latency
+            if self.sched.id in ["late", "hadoop"]:
+                ret = self.sched.update_node_progress(self.node_id, 2/3 + (1-temp_ticks/self.REDUCE_TOTAL_TICK)/3, t, task_id, dup)
+        if task_id not in self.sched.task_completion_flag:
+            if dup:
+                self.sched.duplicate_tasks[task_id][1] = 1
+            else:
+                self.sched.running_tasks[task_id][1] = 1
+        self.sched.task_completion_flag[task_id] = True
+        with self.sched.lock_nodes:
+            self.sched.available_nodes.append(self.node_id)
+        # once it is done, it would not add any more tasks
+        print("Red Done", task_id, self.node_id, self.sched.available_nodes, self.sched.running_tasks)
+        print("Completion:", self.sched.task_completion_flag)
 
 
     def mark_slow(self):
