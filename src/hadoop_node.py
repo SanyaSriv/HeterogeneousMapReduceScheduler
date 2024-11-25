@@ -12,20 +12,11 @@ that will execute the map/reduce tasks.
 import random
 import time
 import threading
-import logging
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(message)s",
-    handlers=[
-        logging.FileHandler("log.txt"),
-        logging.StreamHandler() 
-    ]
-)
+from log import InfoLogger
 
 def form_log(msg):
     t = time.time()
-    logging.info(f"LOGGING - NODE - [{t}] - {msg}")
+    InfoLogger.info(f"LOGGING - NODE - [{t}] - {msg}")
 class NodeCluster:
     def __init__(self, num_nodes, tick_latency, map_total_tick, reduce_total_tick, copy_total_tick, sort_total_tick):
         self.num_nodes = num_nodes # number of nodes (workers) to establish
@@ -150,7 +141,7 @@ class Node:
                 break
         
         form_log(f"BEGIN-RED: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
-        
+
         temp_ticks = self.REDUCE_TOTAL_TICK
         while temp_ticks > 0:
             if task_id in self.sched.task_completion_flag:

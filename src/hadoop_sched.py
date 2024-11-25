@@ -3,20 +3,11 @@ This file contains the hadoop scheduler class.
 """
 import threading
 import time
-import logging
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(message)s",
-    handlers=[
-        logging.FileHandler("log.txt"),
-        logging.StreamHandler() 
-    ]
-)
+from log import InfoLogger
 
 def form_log(msg):
     t = time.time()
-    logging.info(f"LOGGING - SCHED - [{t}] - {msg}")
+    InfoLogger.info(f"LOGGING - SCHED - [{t}] - {msg}")
 
 class HadoopScheduler:
     def __init__(self, tasks, threshold):
