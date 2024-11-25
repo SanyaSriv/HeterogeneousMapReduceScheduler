@@ -89,6 +89,8 @@ class HadoopScheduler:
                                 break
                             task = self.running_tasks[tid][0]
                             print("assigning dup task", self.running_tasks[tid], self.node_progress_stats[nid]["progress_score"])
+                            with self.lock_tasks:
+                                self.duplicate_tasks[tid] = [task,0]
                             if task["type"] == "map":
                                 thread = threading.Thread(target=worker.execute_map_task, args=(tid,1))
                                 self.worker_threads[node_id] = thread
@@ -105,8 +107,7 @@ class HadoopScheduler:
                                 thread = threading.Thread(target=worker.execute_sort_task, args=(tid,1))
                                 self.worker_threads[node_id] = thread
                                 thread.start()
-                            with self.lock_tasks:
-                                self.duplicate_tasks[tid] = [task,0]
+                            
                             break
             if len(self.regular_tasks) == 0 and len(self.running_tasks) == 0:
                 break
@@ -117,7 +118,7 @@ class HadoopScheduler:
             for tid in self.running_tasks:
                 if self.running_tasks[tid][1] == 1 or (tid in self.duplicate_tasks and self.duplicate_tasks[tid][1] == 1):
                         #TODO delete the two tasks, one of them finished
-                        time.sleep(2)     
+                        time.sleep(1)     
                         with self.lock_tasks:
                             if self.running_tasks[tid][0]["type"] == "map":
                                 self.task_id += 1
