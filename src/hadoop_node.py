@@ -12,7 +12,20 @@ that will execute the map/reduce tasks.
 import random
 import time
 import threading
+import logging
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(message)s",
+    handlers=[
+        logging.FileHandler("log.txt"),
+        logging.StreamHandler() 
+    ]
+)
+
+def form_log(msg):
+    t = time.time()
+    logging.info(f"LOGGING - NODE - [{t}] - {msg}")
 class NodeCluster:
     def __init__(self, num_nodes, tick_latency, map_total_tick, reduce_total_tick, copy_total_tick, sort_total_tick):
         self.num_nodes = num_nodes # number of nodes (workers) to establish
@@ -31,6 +44,7 @@ class NodeCluster:
         This function should make homogeneous self.num_nodes number of nodes.
         Every node should have the same properties. 
         """
+        form_log(f"NODES CREATED")
         # we need to have atleast 1 straggler
         number_of_straglers = random.randint(1, int(self.num_nodes / 2))
         # generate which node IDs will become stragglers
@@ -77,18 +91,18 @@ class Node:
 
     def execute_map_task(self, task_id, dup):
         t = 0
+        form_log(f"BEGIN-MAP: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
         temp_ticks = self.MAP_TOTAL_TICK
         while temp_ticks > 0:
             if task_id in self.sched.task_completion_flag:
                 with self.sched.lock_nodes:
                     self.sched.available_nodes.append(self.node_id)
-                    print("Redundant Map task aborted",task_id, self.node_id, self.sched.available_nodes)
+                    form_log(f"ABORT-REDUNDANT-MAP: [{task_id}] : [{self.node_id}]")
                     return
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency * 1.01 ** (len(self.sched.duplicate_tasks)+1))
             t += self.tick_latency
-            if self.sched.id in ["late", "hadoop"]:
-                ret = self.sched.update_node_progress(self.node_id,(1 - temp_ticks/self.MAP_TOTAL_TICK), t, task_id, dup)
+            ret = self.sched.update_node_progress(self.node_id,(1 - temp_ticks/self.MAP_TOTAL_TICK), t, task_id, dup)
         # once it is done, it should add a copy task to the list of tasks
         if dup:
             self.sched.duplicate_tasks[task_id][1] = 1
@@ -97,55 +111,58 @@ class Node:
         self.sched.task_completion_flag[task_id] = True
         with self.sched.lock_nodes:
             self.sched.available_nodes.append(self.node_id)
-            print("Map done", task_id, self.node_id, dup, self.sched.available_nodes)
+            form_log(f"DONE-MAP: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
     
     def execute_reduce_task(self, task_id, dup):
         t=0
         temp_ticks = self.COPY_TOTAL_TICK
+        form_log(f"BEGIN-COPY: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
         while temp_ticks > 0:
             if task_id in self.sched.task_completion_flag:
                 with self.sched.lock_nodes:
                     self.sched.available_nodes.append(self.node_id)
-                    print("Redundant reduce task aborted in copy phase")
+                    form_log(f"ABORT-REDUNDANT-COPY: [{task_id}] : [{self.node_id}]")
                     return
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency * 1.01 ** (len(self.sched.duplicate_tasks)+1))
             t += self.tick_latency
-            if self.sched.id in ["late", "hadoop"]:
-                ret = self.sched.update_node_progress(self.node_id, (1-temp_ticks/self.COPY_TOTAL_TICK)/3, t, task_id, dup)
-
-        print("Copy done", task_id, self.sched.available_nodes)
-
+            ret = self.sched.update_node_progress(self.node_id, (1-temp_ticks/self.COPY_TOTAL_TICK)/3, t, task_id, dup)
+        
+        form_log(f"DONE-COPY: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
+        form_log(f"BEGIN-SORT: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
+        
         temp_ticks = self.SORT_TOTAL_TICK
         while temp_ticks > 0:
             if task_id in self.sched.task_completion_flag:
                 with self.sched.lock_nodes:
                     self.sched.available_nodes.append(self.node_id)
-                    print("Redundant reduce task aborted in sort phase")
+                    form_log(f"ABORT-REDUNDANT-SORT: [{task_id}] : [{self.node_id}]")
                     return
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency)
             t += self.tick_latency
-            if self.sched.id in ["late", "hadoop"]:
-                ret = self.sched.update_node_progress(self.node_id, 1/3 + (1-temp_ticks/self.SORT_TOTAL_TICK)/3, t, task_id, dup)
-        print("Sort done", task_id, self.sched.available_nodes)
+            ret = self.sched.update_node_progress(self.node_id, 1/3 + (1-temp_ticks/self.SORT_TOTAL_TICK)/3, t, task_id, dup)
+        
+        form_log(f"DONE-SORT: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
 
         while True:
             if self.sched.num_completion == self.sched.map_num:
                 break
-
+        
+        form_log(f"BEGIN-RED: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
+        
         temp_ticks = self.REDUCE_TOTAL_TICK
         while temp_ticks > 0:
             if task_id in self.sched.task_completion_flag:
                 with self.sched.lock_nodes:
                     self.sched.available_nodes.append(self.node_id)
-                    print("Redundant reduce task aborted")
+                    form_log(f"ABORT-REDUNDANT-RED: [{task_id}] : [{self.node_id}]")
                     return
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency)
             t += self.tick_latency
-            if self.sched.id in ["late", "hadoop"]:
-                ret = self.sched.update_node_progress(self.node_id, 2/3 + (1-temp_ticks/self.REDUCE_TOTAL_TICK)/3, t, task_id, dup)
+            ret = self.sched.update_node_progress(self.node_id, 2/3 + (1-temp_ticks/self.REDUCE_TOTAL_TICK)/3, t, task_id, dup)
+        
         if task_id not in self.sched.task_completion_flag:
             if dup:
                 self.sched.duplicate_tasks[task_id][1] = 1
@@ -155,9 +172,7 @@ class Node:
         with self.sched.lock_nodes:
             self.sched.available_nodes.append(self.node_id)
         # once it is done, it would not add any more tasks
-        print("Red Done", task_id, self.node_id, self.sched.available_nodes, self.sched.running_tasks)
-        print("Completion:", self.sched.task_completion_flag)
-
+        form_log(f"DONE-RED: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
 
     def mark_slow(self):
         self.slow_status = True
