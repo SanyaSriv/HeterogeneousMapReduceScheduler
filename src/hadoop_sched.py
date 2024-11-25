@@ -63,12 +63,12 @@ class HadoopScheduler:
                                 self.regular_tasks.pop(tid)
                                 self.running_tasks[tid] = [task, 0]
                             if task["type"] == "map":
-                                form_log(f"ASSIGN-MAP: [TASK:{self.task_id}] : [TID:{tid}] : [NODE:{node_id}]")
+                                form_log(f"ASSIGN-MAP: [TASK:{tid}] : [NODE:{node_id}]")
                                 thread = threading.Thread(target=worker.execute_map_task, args=(tid,0))
                                 self.worker_threads[node_id] = thread
                                 thread.start()
                             elif task["type"] == "reduce":
-                                form_log(f"ASSIGN-RED: [TASK:{self.task_id}] : [TID:{tid}] : [NODE:{node_id}]")
+                                form_log(f"ASSIGN-RED: [TASK:{tid}] : [NODE:{node_id}]")
                                 thread = threading.Thread(target=worker.execute_reduce_task, args=(tid,0))
                                 self.worker_threads[node_id] = thread
                                 thread.start()
