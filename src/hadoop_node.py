@@ -88,7 +88,7 @@ class Node:
             if task_id in self.sched.task_completion_flag:
                 with self.sched.lock_nodes:
                     self.sched.available_nodes.append(self.node_id)
-                    form_log(f"ABORT-REDUNDANT-MAP: [{task_id}] : [{self.node_id}]")
+                    form_log(f"ABORT-REDUNDANT-MAP: [TASK:{task_id}] : [NODE:{self.node_id}]")
                     return
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency * 1.01 ** (len(self.sched.duplicate_tasks)+1))
@@ -112,7 +112,7 @@ class Node:
             if task_id in self.sched.task_completion_flag:
                 with self.sched.lock_nodes:
                     self.sched.available_nodes.append(self.node_id)
-                    form_log(f"ABORT-REDUNDANT-COPY: [{task_id}] : [{self.node_id}]")
+                    form_log(f"ABORT-REDUNDANT-COPY: [TASK:{task_id}] : [NODE:{self.node_id}]")
                     return
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency * 1.01 ** (len(self.sched.duplicate_tasks)+1))
@@ -127,7 +127,7 @@ class Node:
             if task_id in self.sched.task_completion_flag:
                 with self.sched.lock_nodes:
                     self.sched.available_nodes.append(self.node_id)
-                    form_log(f"ABORT-REDUNDANT-SORT: [{task_id}] : [{self.node_id}]")
+                    form_log(f"ABORT-REDUNDANT-SORT: [TASK{task_id}] : [NODE:{self.node_id}]")
                     return
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency)
@@ -147,7 +147,7 @@ class Node:
             if task_id in self.sched.task_completion_flag:
                 with self.sched.lock_nodes:
                     self.sched.available_nodes.append(self.node_id)
-                    form_log(f"ABORT-REDUNDANT-RED: [{task_id}] : [{self.node_id}]")
+                    form_log(f"ABORT-REDUNDANT-RED: [TASK:{task_id}] : [NODE:{self.node_id}]")
                     return
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency)
