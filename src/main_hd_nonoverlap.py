@@ -2,15 +2,12 @@ import hadoop_wo_overlap
 import node_wo_overlap
 import threading
 # making a node cluster here
-node_cluster = node_wo_overlap.NodeCluster(6, 0.5, 10, 8, 6, 5)
+node_cluster = node_wo_overlap.NodeCluster(10, 0.5, 10, 8, 6, 5)
 
+tasks = {}
 # defining the tasks here
-tasks = {"0": {"type": "map"},
-         "1": {"type": "map"},
-         "2": {"type": "map"},
-         "3": {"type": "map"},
-         "4": {"type": "map"},
-         "5": {"type": "map"}}
+for i in range(11):
+    tasks[i] = {"type": "map"}
 
 # making the scheduler instance here
 sched = hadoop_wo_overlap.HadoopScheduler(tasks, 0.9)
