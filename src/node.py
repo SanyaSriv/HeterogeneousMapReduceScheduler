@@ -108,6 +108,11 @@ class Node:
         temp_ticks = self.COPY_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
+            current_tick_latency = self.tick_latency
+            if self.node_id % 2 == 0 and self.sched.node_availibility[self.node_id + 1] == 0:
+                current_tick_latency = 1.05 * current_tick_latency
+            elif self.node_id % 2 == 1 and self.sched.node_availibility[self.node_id - 1] == 0:
+                current_tick_latency = 1.05 * current_tick_latency
             time.sleep(self.tick_latency)
         form_log(f"DONE-COPY: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
 
@@ -116,6 +121,11 @@ class Node:
         temp_ticks = self.SORT_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
+            current_tick_latency = self.tick_latency
+            if self.node_id % 2 == 0 and self.sched.node_availibility[self.node_id + 1] == 0:
+                current_tick_latency = 1.05 * current_tick_latency
+            elif self.node_id % 2 == 1 and self.sched.node_availibility[self.node_id - 1] == 0:
+                current_tick_latency = 1.05 * current_tick_latency
             time.sleep(self.tick_latency)
         form_log(f"DONE-SORT: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
 
@@ -127,6 +137,11 @@ class Node:
         temp_ticks = self.REDUCE_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
+            current_tick_latency = self.tick_latency
+            if self.node_id % 2 == 0 and self.sched.node_availibility[self.node_id + 1] == 0:
+                current_tick_latency = 1.05 * current_tick_latency
+            elif self.node_id % 2 == 1 and self.sched.node_availibility[self.node_id - 1] == 0:
+                current_tick_latency = 1.05 * current_tick_latency
             time.sleep(self.tick_latency)
         self.sched.mark_task_finished(task_id)
         # mark that the node is available
