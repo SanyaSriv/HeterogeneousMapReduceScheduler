@@ -1,9 +1,9 @@
 import late_sched
-import late_node
+import hadoop_node
 import threading
 # making a node cluster here
 # first number must be even
-node_cluster = late_node.NodeCluster(6, 0.5, 5, 3, 2, 1)
+node_cluster = hadoop_node.NodeCluster(6, 0.5, 5, 3, 2, 1)
 
 # defining the tasks here
 tasks = {"0": {"type": "map"},

@@ -2,7 +2,7 @@ import hadoop_sched
 import hadoop_node
 import threading
 # making a node cluster here
-node_cluster = hadoop_node.NodeCluster(5, 0.5, 5, 3, 2, 1)
+node_cluster = hadoop_node.NodeCluster(6, 0.5, 10, 8, 6, 5)
 
 # defining the tasks here
 tasks = {"0": {"type": "map"},
