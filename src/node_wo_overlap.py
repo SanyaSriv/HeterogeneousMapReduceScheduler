@@ -178,10 +178,6 @@ class Node:
             ret = self.sched.update_node_progress(self.node_id, 1/3 + (1-temp_ticks/self.SORT_TOTAL_TICK)/3, t, task_id, dup)
         
         form_log(f"DONE-SORT: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
-
-        while True:
-            if self.sched.num_completion == self.sched.map_num:
-                break
         
         form_log(f"BEGIN-RED: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
 
