@@ -30,17 +30,19 @@ class NodeCluster:
     def set_scheduler(self, scheduler):
         self.sched = scheduler # can be late or hadoop (naive)
 
-    def init_homogeneous_nodes(self):
+    def init_homogeneous_nodes(self, num_stragglers, lis_straggler):
         """
         This function should make homogeneous self.num_nodes number of nodes.
         Every node should have the same properties. 
         """
         form_log(f"NODES CREATED")
         # we need to have atleast 1 straggler
-        number_of_straglers = random.randint(1, int(self.num_nodes / 2))
+        # number_of_straglers = random.randint(1, int(self.num_nodes / 2))
+        number_of_straglers = num_stragglers
         # generate which node IDs will become stragglers
-        straggler_list = [random.randint(0, self.num_nodes-1) for _ in range(number_of_straglers)]
-        for i in range(0, self.num_nodes):
+        # straggler_list = [random.randint(0, self.num_nodes-1) for _ in range(number_of_straglers)]
+        straggler_list = lis_straggler
+        for i in range(0, self.num_nodes):    
             rangeA = 1.5 # can adjust it later
             rangeB = 4 # can adjust it later
             if i in straggler_list:
@@ -53,6 +55,7 @@ class NodeCluster:
                                     rangeA, rangeB, 
                                     self.sched) # setting it at 100 by default for now
             form_log(f"CREATE-NODE: [NODE:{i}]")
+            
     def set_slow_status(self, node_id):
         self.node_pool[node_id].mark_slow()
 
