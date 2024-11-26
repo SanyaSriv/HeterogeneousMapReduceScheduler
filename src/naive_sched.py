@@ -3,6 +3,11 @@ This file contains the naive scheduler class - that will not do any speculation.
 """
 import threading
 import time
+from log import InfoLogger
+
+def form_log(msg):
+    t = time.time()
+    InfoLogger.info(f"LOGGING - SCHED - [{t}] - {msg}")
 
 class NaiveScheduler:
     def __init__(self, tasks):
@@ -65,6 +70,7 @@ class NaiveScheduler:
                         self.regular_tasks_dict[self.task_id] = {"type":"copy"}
                         self.regular_task_list.append(self.task_id)
                         tasks_to_rm.append(task_id)
+                        form_log(f"GEN-RED: [TASK:{self.task_id}]")
                         # decrement the number of map tasks in the system
                         self.map_tasks -= 1
                     elif self.running_task_status[task_id]["run_stat"] == 1:
@@ -99,7 +105,7 @@ class NaiveScheduler:
                 worker = self.node_cluster.node_pool[node_id]
                 self.node_availibility[node_id] = 0 # make this worker unavailable now
                 task_assigned = 1
-
+                form_log(f"ASSIGN-MAP: [TASK:{task}] : [NODE:{node_id}]")
                 self.create_task_running(task, "map")
                 thread = threading.Thread(target=worker.execute_map_task, args=(task,)) 
                 self.threads[node_id] = thread
@@ -116,9 +122,9 @@ class NaiveScheduler:
                 worker = self.node_cluster.node_pool[node_id]
                 self.node_availibility[node_id] = 0 # make this worker unavailable now
                 task_assigned = 1
-
+                form_log(f"ASSIGN-RED: [TASK:{task}] : [NODE:{node_id}]")
                 self.create_task_running(task, "copy")
-                thread = threading.Thread(target=worker.execute_copy_task, args=(task,)) 
+                thread = threading.Thread(target=worker.execute_red_task, args=(task,)) 
                 self.threads[node_id] = thread
                 thread.start()
 

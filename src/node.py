@@ -34,14 +34,16 @@ class NodeCluster:
         This function should make homogeneous self.num_nodes number of nodes.
         Every node should have the same properties. 
         """
+        form_log(f"NODES CREATED")
         # we need to have atleast 1 straggler
         number_of_straglers = random.randint(1, int(self.num_nodes / 2))
         # generate which node IDs will become stragglers
         straggler_list = [random.randint(0, self.num_nodes-1) for _ in range(number_of_straglers)]
-        for i in range(0, self.num_nodes):
+        for i in range(0, self.num_nodes):    
             rangeA = 1.5 # can adjust it later
             rangeB = 4 # can adjust it later
             if i in straggler_list:
+                form_log(f"STRAGGLER: [NODE:{i}]")
                 rangeA = 0.1 # can adjust it later
                 rangeB = 1.5 # can adjust it later
             self.node_pool[i] = Node(i, 
@@ -49,7 +51,7 @@ class NodeCluster:
                                     self.tick_latency, 
                                     rangeA, rangeB, 
                                     self.sched) # setting it at 100 by default for now
-
+            form_log(f"CREATE-NODE: [NODE:{i}]")
     def set_slow_status(self, node_id):
         self.node_pool[node_id].mark_slow()
 
@@ -93,7 +95,7 @@ class Node:
         self.sched.mark_node_available(self.node_id)
         form_log(f"DONE-MAP: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
 
-    def execute_copy_task(self, task_id):
+    def execute_red_task(self, task_id):
         form_log(f"BEGIN-COPY: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
         temp_ticks = self.COPY_TOTAL_TICK
         while temp_ticks > 0:
