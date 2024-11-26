@@ -241,7 +241,7 @@ def main():
         pair = (sort_nodes1[i], sort_tasks1[i], sort_dup1[i])
         if pair in sort_time_stamp_dict_end:
             time_end = sort_time_stamp_dict_end[pair]
-        elif pair in sort_redundant_abort_timestamp:
+        elif pair in sort_redundant_time_stamp_dict:
             time_end = sort_redundant_time_stamp_dict[pair]
         else:
             print("NO END TIME FOUND FOR SORT PHASE")
