@@ -16,7 +16,7 @@ tasks = {"0": {"type": "map"},
 sched = hadoop_sched.HadoopScheduler(tasks, 0.9)
 
 node_cluster.set_scheduler(sched)
-node_cluster.init_homogeneous_nodes()
+node_cluster.init_homogeneous_nodes(2, [0, 1])
 sched.set_node_cluster(node_cluster)
 
 

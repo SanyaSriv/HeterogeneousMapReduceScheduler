@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import time
 import argparse
 import re
+from adjustText import adjust_text
 
 # defining some global REs here that will help in sorting through the logs
 PARAM_MATCH =  r"\[([a-zA-Z]+):([0-9.]+)\]"
@@ -50,7 +51,10 @@ def main():
     log_file_sep = processing_logs_stage1(args.log_file)
     node_logs = processing_logs_stage2(log_file_sep["node"])
     sched_logs = processing_logs_stage2(log_file_sep["sched"])
-    straggler_node_list = [int(x["params"]["NODE"]) for x in node_logs["STRAGGLER"]]
+    if "STRAGGLER" in node_logs:
+        straggler_node_list = [int(x["params"]["NODE"]) for x in node_logs["STRAGGLER"]]
+    else:
+        straggler_node_list = []
     node_list = [int(x["params"]["NODE"]) for x in node_logs["CREATE-NODE"]]
     print(straggler_node_list)
     # MAKING ALL THE NODE EVENT GRAPHS
@@ -62,8 +66,8 @@ def main():
     tasks = [x['params']['TASK'] for x in sched_logs["ASSIGN-MAP"]]
     plt.figure(figsize=(10, 6))
     for i in range(len(timestamps)):
-        plt.barh(nodes[i], 0.02, left=timestamps[i], color="skyblue", edgecolor="black", height=0.4)
-        plt.text(timestamps[i] + 0.04, nodes[i], f"{tasks[i]}", va='center', fontsize=12)
+        plt.barh(nodes[i], 0.02, left=timestamps[i], color="skyblue", edgecolor="black", height=0.55)
+        plt.text(timestamps[i] + 0.04, nodes[i], f"{tasks[i]}", va='center', fontsize=10)
     plt.xlabel("Timestamp")
     plt.ylabel("Node ID")
     plt.title("Map Task Assignment Timeline (Straggler Nodes Highlighted)")
@@ -73,6 +77,8 @@ def main():
         tick.set_color(color)
     plt.tight_layout()
     plt.savefig(args.output_dir + "/map_assignment.png")
+
+    text = []
 
     #second graph - scheduler speculation graph
     #Third graph -- showing the beginning of task execution and also the end of it
@@ -117,7 +123,7 @@ def main():
         redundant_time_stamp_dict[(nodes_redundant[i], tasks_redundant[i], dup_redundant[i])] = redundant_abort_timestamp[i]
         score[(nodes_redundant[i], tasks_redundant[i], dup_redundant[i])] = score_redundant[i]
 
-    plt.figure(figsize=(10, 6))
+    # plt.figure(figsize=(20, 6))
     for i in range(len(timestamps_begin)):
         score_display = 0
         pair = (nodes1[i], tasks1[i], dup1[i])
@@ -139,8 +145,9 @@ def main():
             to_disp = tasks1[i]
         else:
             to_disp = "{} | {:.2f}".format(tasks1[i], score[pair])
-        plt.barh(nodes1[i], time_end - timestamps_begin[i], left=timestamps_begin[i], color=c1, edgecolor="black", height=0.4)
-        plt.text(timestamps_begin[i] + 0.04, nodes1[i], to_disp, va='center', fontsize=12, color=c2)
+        plt.barh(nodes1[i], time_end - timestamps_begin[i], left=timestamps_begin[i], color=c1, edgecolor="black", height=0.55)
+        t = plt.text(timestamps_begin[i] + 0.04, nodes1[i], to_disp, va='center', fontsize=10, color=c2)
+        text.append(t)
     # plt.xlabel("Timestamp")
     # plt.ylabel("Node ID")
     # plt.title("Map Task Begin Timeline (Straggler Nodes Highlighted)")
@@ -217,9 +224,9 @@ def main():
             to_disp = cpy_tasks1[i]
         else:
             to_disp = "{} | {:.2f}".format(cpy_tasks1[i], score[pair])
-        plt.barh(cpy_nodes1[i], time_end - cpy_timestamps_begin[i], left=cpy_timestamps_begin[i], color=c, edgecolor="black", height=0.4)
-        plt.text(cpy_timestamps_begin[i] + 0.04, cpy_nodes1[i], to_disp, va='center', fontsize=12)
-    
+        plt.barh(cpy_nodes1[i], time_end - cpy_timestamps_begin[i], left=cpy_timestamps_begin[i], color=c, edgecolor="black", height=0.55)
+        t = plt.text(cpy_timestamps_begin[i] + 0.04, cpy_nodes1[i], to_disp, va='center', fontsize=10)
+        text.append(t)
     
     # computing the same things for sort because the copy - sort - and reduce phases are combined into 1 task
     # so unless we show them together, the speculation would look weird
@@ -283,9 +290,9 @@ def main():
             to_disp = sort_tasks1[i]
         else:
             to_disp = "{} | {:.2f}".format(sort_tasks1[i], score[pair])
-        plt.barh(sort_nodes1[i], time_end - sort_timestamps_begin[i], left=sort_timestamps_begin[i], color=c, edgecolor="black", height=0.4)
-        plt.text(sort_timestamps_begin[i]+0.04, sort_nodes1[i], to_disp, va="center", fontsize=12)
-    
+        plt.barh(sort_nodes1[i], time_end - sort_timestamps_begin[i], left=sort_timestamps_begin[i], color=c, edgecolor="black", height=0.55)
+        t = plt.text(sort_timestamps_begin[i]+0.04, sort_nodes1[i], to_disp, va="center", fontsize=10)
+        text.append(t)
     # adding data about reduce tasks here
     red_timestamps_begin = [float(x['timestamp']) for x in node_logs["BEGIN-RED"]]
     red_nodes1 = [int(x['params']['NODE']) for x in node_logs["BEGIN-RED"]]
@@ -350,9 +357,9 @@ def main():
             to_disp = red_tasks1[i]
         else:
             to_disp = "{} | {:.2f}".format(red_tasks1[i], score[pair])
-        plt.barh(red_nodes1[i], time_end - red_timestamps_begin[i], left=red_timestamps_begin[i], color=c, edgecolor="black", height=0.4)
-        plt.text(red_timestamps_begin[i]+0.04, red_nodes1[i], to_disp, va="center", fontsize=12)
-    
+        plt.barh(red_nodes1[i], time_end - red_timestamps_begin[i], left=red_timestamps_begin[i], color=c, edgecolor="black", height=0.55)
+        t = plt.text(red_timestamps_begin[i]+0.04, red_nodes1[i], to_disp, va="center", fontsize=10)
+        text.append(t)
     # collecting all timestamps when a red generation happens
     red_gen_timestamps = [float(x['timestamp']) for x in sched_logs["GEN-RED"]]
     red_gen_taskid = [x['params']['TASK'] for x in sched_logs["GEN-RED"]]
@@ -365,6 +372,8 @@ def main():
 
     # Set custom x-ticks at the event timestamps
     # plt.xticks(red_gen_timestamps)
+
+
     plt.xlabel("Timestamp")
     plt.ylabel("Node ID")
     plt.title("Copy-Sort-Reduce Timeline (Straggler Nodes Highlighted)")
@@ -373,6 +382,7 @@ def main():
     for tick, color in zip(plt.yticks(node_list)[1], node_colors):
         tick.set_color(color)
     plt.tight_layout()
+    adjust_text(text, arrowprops=dict(arrowstyle='-', color='gray', lw=1, mutation_scale=15))
     plt.savefig(args.output_dir + "/copy_sort_red.png")
     # MAKING ALL THE SCHED EVENT GRAPHS
 
