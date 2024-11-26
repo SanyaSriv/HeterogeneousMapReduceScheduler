@@ -63,7 +63,7 @@ def main():
     plt.figure(figsize=(10, 6))
     for i in range(len(timestamps)):
         plt.barh(nodes[i], 0.02, left=timestamps[i], color="skyblue", edgecolor="black", height=0.4)
-        plt.text(timestamps[i] + 0.004, nodes[i], f"{tasks[i]}", va='center', fontsize=12)
+        plt.text(timestamps[i] + 0.04, nodes[i], f"{tasks[i]}", va='center', fontsize=12)
     plt.xlabel("Timestamp")
     plt.ylabel("Node ID")
     plt.title("Map Task Assignment Timeline (Straggler Nodes Highlighted)")
@@ -140,7 +140,7 @@ def main():
         else:
             to_disp = "{} | {:.2f}".format(tasks1[i], score[pair])
         plt.barh(nodes1[i], time_end - timestamps_begin[i], left=timestamps_begin[i], color=c1, edgecolor="black", height=0.4)
-        plt.text(timestamps_begin[i] + 0.004, nodes1[i], to_disp, va='center', fontsize=12, color=c2)
+        plt.text(timestamps_begin[i] + 0.04, nodes1[i], to_disp, va='center', fontsize=12, color=c2)
     # plt.xlabel("Timestamp")
     # plt.ylabel("Node ID")
     # plt.title("Map Task Begin Timeline (Straggler Nodes Highlighted)")
@@ -218,7 +218,7 @@ def main():
         else:
             to_disp = "{} | {:.2f}".format(cpy_tasks1[i], score[pair])
         plt.barh(cpy_nodes1[i], time_end - cpy_timestamps_begin[i], left=cpy_timestamps_begin[i], color=c, edgecolor="black", height=0.4)
-        plt.text(cpy_timestamps_begin[i] + 0.004, cpy_nodes1[i], to_disp, va='center', fontsize=12)
+        plt.text(cpy_timestamps_begin[i] + 0.04, cpy_nodes1[i], to_disp, va='center', fontsize=12)
     
     
     # computing the same things for sort because the copy - sort - and reduce phases are combined into 1 task
@@ -284,7 +284,7 @@ def main():
         else:
             to_disp = "{} | {:.2f}".format(sort_tasks1[i], score[pair])
         plt.barh(sort_nodes1[i], time_end - sort_timestamps_begin[i], left=sort_timestamps_begin[i], color=c, edgecolor="black", height=0.4)
-        plt.text(sort_timestamps_begin[i]+0.004, sort_nodes1[i], to_disp, va="center", fontsize=12)
+        plt.text(sort_timestamps_begin[i]+0.04, sort_nodes1[i], to_disp, va="center", fontsize=12)
     
     # adding data about reduce tasks here
     red_timestamps_begin = [float(x['timestamp']) for x in node_logs["BEGIN-RED"]]
@@ -351,7 +351,7 @@ def main():
         else:
             to_disp = "{} | {:.2f}".format(red_tasks1[i], score[pair])
         plt.barh(red_nodes1[i], time_end - red_timestamps_begin[i], left=red_timestamps_begin[i], color=c, edgecolor="black", height=0.4)
-        plt.text(red_timestamps_begin[i]+0.004, red_nodes1[i], to_disp, va="center", fontsize=12)
+        plt.text(red_timestamps_begin[i]+0.04, red_nodes1[i], to_disp, va="center", fontsize=12)
     
     # collecting all timestamps when a red generation happens
     red_gen_timestamps = [float(x['timestamp']) for x in sched_logs["GEN-RED"]]
