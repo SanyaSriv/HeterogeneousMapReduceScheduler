@@ -310,6 +310,18 @@ def main():
         plt.barh(red_nodes1[i], time_end - red_timestamps_begin[i], left=red_timestamps_begin[i], color=c, edgecolor="black", height=0.4)
         plt.text(red_timestamps_begin[i]+0.004, red_nodes1[i], f"{red_tasks1[i]}", va="center", fontsize=12)
     
+    # collecting all timestamps when a red generation happens
+    red_gen_timestamps = [float(x['timestamp']) for x in sched_logs["GEN-RED"]]
+    red_gen_taskid = [x['params']['TASK'] for x in sched_logs["GEN-RED"]]
+
+    # for i in range(0, len(red_gen_timestamps)):
+    #     plt.plot([red_gen_timestamps[i], red_gen_timestamps[i]], [0, 4], color='pink', linestyle='-', label=f"{red_gen_taskid[i]}")
+    # UNCOMMENT IF IF YOU WANT TO SEE GENERATION
+    # for ts, task in zip(red_gen_timestamps, red_gen_taskid):
+    #     plt.axvline(x=ts, color='pink', linestyle='-', label=f"Event: {task}")
+
+    # Set custom x-ticks at the event timestamps
+    # plt.xticks(red_gen_timestamps)
     plt.xlabel("Timestamp")
     plt.ylabel("Node ID")
     plt.title("Copy-Sort-Reduce Timeline (Straggler Nodes Highlighted)")
