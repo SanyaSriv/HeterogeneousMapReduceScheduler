@@ -50,7 +50,6 @@ class HadoopScheduler:
 
     def assign_tasks(self):
         while(True):
-            time.sleep(0.5)
             with self.lock:
                 if len(self.regular_tasks) != 0:
                     for tid in self.regular_tasks:
