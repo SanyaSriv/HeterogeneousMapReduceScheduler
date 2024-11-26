@@ -214,9 +214,9 @@ def main():
         else:
             c = "skyblue"
         if score_display == 0:
-            to_disp = tasks1[i]
+            to_disp = cpy_tasks1[i]
         else:
-            to_disp = "{}   --   {:.2f}".format(tasks1[i], score[pair])
+            to_disp = "{}   --   {:.2f}".format(cpy_tasks1[i], score[pair])
         plt.barh(cpy_nodes1[i], time_end - cpy_timestamps_begin[i], left=cpy_timestamps_begin[i], color=c, edgecolor="black", height=0.4)
         plt.text(cpy_timestamps_begin[i] + 0.004, cpy_nodes1[i], to_disp, va='center', fontsize=12)
     
@@ -280,9 +280,9 @@ def main():
         else:
             c = "#bfe01b" 
         if score_display == 0:
-            to_disp = tasks1[i]
+            to_disp = sort_tasks1[i]
         else:
-            to_disp = "{}   --   {:.2f}".format(tasks1[i], score[pair])
+            to_disp = "{}   --   {:.2f}".format(sort_tasks1[i], score[pair])
         plt.barh(sort_nodes1[i], time_end - sort_timestamps_begin[i], left=sort_timestamps_begin[i], color=c, edgecolor="black", height=0.4)
         plt.text(sort_timestamps_begin[i]+0.004, sort_nodes1[i], to_disp, va="center", fontsize=12)
     
@@ -347,9 +347,9 @@ def main():
         else:
             c = "yellow" 
         if score_display == 0:
-            to_disp = tasks1[i]
+            to_disp = red_tasks1[i]
         else:
-            to_disp = "{}   --   {:.2f}".format(tasks1[i], score[pair])
+            to_disp = "{}   --   {:.2f}".format(red_tasks1[i], score[pair])
         plt.barh(red_nodes1[i], time_end - red_timestamps_begin[i], left=red_timestamps_begin[i], color=c, edgecolor="black", height=0.4)
         plt.text(red_timestamps_begin[i]+0.004, red_nodes1[i], to_disp, va="center", fontsize=12)
     
