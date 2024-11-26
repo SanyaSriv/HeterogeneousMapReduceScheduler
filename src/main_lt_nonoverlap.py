@@ -14,7 +14,8 @@ for i in range(11):
 sched = late_wo_overlap.LateScheduler(tasks, 0.9)
 
 node_cluster.set_scheduler(sched)
-node_cluster.init_homogeneous_nodes(2, [0, 1])
+# the 1 parameter will generate random rates according to the hardocded range
+node_cluster.init_homogeneous_nodes(2, [0, 1], 1, [])
 sched.set_node_cluster(node_cluster)
 
 

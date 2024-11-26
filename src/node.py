@@ -29,7 +29,7 @@ class NodeCluster:
     def set_scheduler(self, scheduler):
         self.sched = scheduler # can be late or hadoop (naive)
 
-    def init_homogeneous_nodes(self, num_stragglers, lis_straggler):
+    def init_homogeneous_nodes(self, num_stragglers, lis_straggler, random_speed, deterministic_speed):
         """
         This function should make homogeneous self.num_nodes number of nodes.
         Every node should have the same properties. 
@@ -41,17 +41,22 @@ class NodeCluster:
         # generate which node IDs will become stragglers
         # straggler_list = [random.randint(0, self.num_nodes-1) for _ in range(number_of_straglers)]
         straggler_list = lis_straggler
-        for i in range(0, self.num_nodes):    
-            rangeA = 1.5 # can adjust it later
-            rangeB = 4 # can adjust it later
-            if i in straggler_list:
-                form_log(f"STRAGGLER: [NODE:{i}]")
-                rangeA = 0.1 # can adjust it later
-                rangeB = 1.5 # can adjust it later
+        for i in range(0, self.num_nodes): 
+            if (random_speed == 1):
+                # if this is turned on, then generate a random speed for the tasks   
+                rangeA = 1.5 # can adjust it later
+                rangeB = 4 # can adjust it later
+                if i in straggler_list:
+                    form_log(f"STRAGGLER: [NODE:{i}]")
+                    rangeA = 0.1 # can adjust it later
+                    rangeB = 1.5 # can adjust it later
+                tick_rate = random.uniform(rangeA, rangeB)
+            else:
+                tick_rate = deterministic_speed[i]
             self.node_pool[i] = Node(i, 
                                     self.MAP_TOTAL_TICK, self.REDUCE_TOTAL_TICK, self.COPY_TOTAL_TICK, self.SORT_TOTAL_TICK,
                                     self.tick_latency, 
-                                    rangeA, rangeB, 
+                                    tick_rate, 
                                     self.sched) # setting it at 100 by default for now
             form_log(f"CREATE-NODE: [NODE:{i}]")
     def set_slow_status(self, node_id):
@@ -72,10 +77,10 @@ class NodeCluster:
 
 class Node:
     def __init__(self, node_id, map_total_tick, reduce_total_tick,
-                copy_total_tick, sort_total_tick, tick_latency, tick_rate_rangeA, tick_rate_rangeB, sched):
+                copy_total_tick, sort_total_tick, tick_latency, tick_rate, sched):
         self.node_id = node_id
         self.slow_status = False 
-        self.tick_rate = random.uniform(tick_rate_rangeA, tick_rate_rangeB)
+        self.tick_rate = tick_rate
         self.tick_latency = tick_latency
         self.sched = sched
         self.MAP_TOTAL_TICK = map_total_tick
