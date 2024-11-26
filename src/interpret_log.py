@@ -138,7 +138,7 @@ def main():
         if score_display == 0:
             to_disp = tasks1[i]
         else:
-            to_disp = "{}   --   {:.2f}".format(tasks1[i], score[pair])
+            to_disp = "{} | {:.2f}".format(tasks1[i], score[pair])
         plt.barh(nodes1[i], time_end - timestamps_begin[i], left=timestamps_begin[i], color=c1, edgecolor="black", height=0.4)
         plt.text(timestamps_begin[i] + 0.004, nodes1[i], to_disp, va='center', fontsize=12, color=c2)
     # plt.xlabel("Timestamp")
@@ -192,7 +192,7 @@ def main():
     
     for i in range(0, len(cpy_nodes_redundant)):
         cpy_redundant_time_stamp_dict[(cpy_nodes_redundant[i], cpy_tasks_redundant[i], cpy_dup_redundant[i])] = cpy_redundant_abort_timestamp[i]
-        score[(nodes_redundant[i], tasks_redundant[i], dup_redundant[i])] = score_redundant[i]
+        score[(cpy_nodes_redundant[i], cpy_tasks_redundant[i], cpy_dup_redundant[i])] = score_redundant[i]
     
     print(cpy_time_stamp_dict_begin)
     print(cpy_time_stamp_dict_end)
@@ -216,7 +216,7 @@ def main():
         if score_display == 0:
             to_disp = cpy_tasks1[i]
         else:
-            to_disp = "{}   --   {:.2f}".format(cpy_tasks1[i], score[pair])
+            to_disp = "{} | {:.2f}".format(cpy_tasks1[i], score[pair])
         plt.barh(cpy_nodes1[i], time_end - cpy_timestamps_begin[i], left=cpy_timestamps_begin[i], color=c, edgecolor="black", height=0.4)
         plt.text(cpy_timestamps_begin[i] + 0.004, cpy_nodes1[i], to_disp, va='center', fontsize=12)
     
@@ -262,7 +262,7 @@ def main():
 
     for i in range(0, len(sort_nodes_redundant)):
         sort_redundant_time_stamp_dict[(sort_nodes_redundant[i], sort_tasks_redundant[i], sort_dup_redundant[i])] = sort_redundant_abort_timestamp[i]
-        score[(nodes_redundant[i], tasks_redundant[i], dup_redundant[i])] = score_redundant[i]
+        score[(sort_nodes_redundant[i], sort_tasks_redundant[i], sort_dup_redundant[i])] = score_redundant[i]
 
     for i in range(0, len(sort_timestamps_begin)):
         score_display = 0
@@ -282,7 +282,7 @@ def main():
         if score_display == 0:
             to_disp = sort_tasks1[i]
         else:
-            to_disp = "{}   --   {:.2f}".format(sort_tasks1[i], score[pair])
+            to_disp = "{} | {:.2f}".format(sort_tasks1[i], score[pair])
         plt.barh(sort_nodes1[i], time_end - sort_timestamps_begin[i], left=sort_timestamps_begin[i], color=c, edgecolor="black", height=0.4)
         plt.text(sort_timestamps_begin[i]+0.004, sort_nodes1[i], to_disp, va="center", fontsize=12)
     
@@ -326,11 +326,11 @@ def main():
 
     for i in range(0, len(red_nodes_redundant)):
         red_redundant_time_stamp_dict[(red_nodes_redundant[i], red_tasks_redundant[i], red_dup_redundant[i])] = red_redundant_abort_timestamp[i]
-        score[(nodes_redundant[i], tasks_redundant[i], dup_redundant[i])] = score_redundant[i]
+        score[(red_nodes_redundant[i], red_tasks_redundant[i], red_dup_redundant[i])] = score_redundant[i]
 
     print(red_time_stamp_dict_begin)
     print(red_time_stamp_dict_end)
-    print(red_redundant_time_stamp_dict)
+    print("redd", red_redundant_time_stamp_dict)
     for i in range(0, len(red_timestamps_begin)):
         pair = (red_nodes1[i], red_tasks1[i], red_dup1[i])
         score_display = 0
@@ -349,7 +349,7 @@ def main():
         if score_display == 0:
             to_disp = red_tasks1[i]
         else:
-            to_disp = "{}   --   {:.2f}".format(red_tasks1[i], score[pair])
+            to_disp = "{} | {:.2f}".format(red_tasks1[i], score[pair])
         plt.barh(red_nodes1[i], time_end - red_timestamps_begin[i], left=red_timestamps_begin[i], color=c, edgecolor="black", height=0.4)
         plt.text(red_timestamps_begin[i]+0.004, red_nodes1[i], to_disp, va="center", fontsize=12)
     
