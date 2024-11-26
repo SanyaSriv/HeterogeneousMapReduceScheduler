@@ -11,6 +11,11 @@ that will execute the map/reduce tasks.
 
 import random
 import time
+from log import InfoLogger
+
+def form_log(msg):
+    t = time.time()
+    InfoLogger.info(f"LOGGING - NODE - [{t}] - {msg}")
 class NodeCluster:
     def __init__(self, num_nodes, tick_latency, map_total_tick, reduce_total_tick, copy_total_tick, sort_total_tick):
         self.num_nodes = num_nodes # number of nodes (workers) to establish
@@ -75,6 +80,8 @@ class Node:
         self.SORT_TOTAL_TICK = sort_total_tick
 
     def execute_map_task(self, task_id):
+        # adding a redundant DUP parameter so we do not have to change the entire graph gen implementation
+        form_log(f"BEGIN-MAP: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
         temp_ticks = self.MAP_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
@@ -84,23 +91,29 @@ class Node:
         self.sched.mark_task_finished(task_id)
         # mark that the node is available
         self.sched.mark_node_available(self.node_id)
-    
+        form_log(f"DONE-MAP: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
+
     def execute_copy_task(self, task_id):
+        form_log(f"BEGIN-COPY: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
         temp_ticks = self.COPY_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency)
+        form_log(f"DONE-COPY: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
 
         # once copy is done, we can begin sort
+        form_log(f"BEGIN-SORT: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
         temp_ticks = self.SORT_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency)
+        form_log(f"DONE-SORT: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
 
         # once sort is done, we can begin reduce but we need to wait till all map tasks finish
         while (self.sched.map_tasks > 0):
             continue
-
+        
+        form_log(f"BEGIN-RED: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
         temp_ticks = self.REDUCE_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
@@ -108,7 +121,8 @@ class Node:
         self.sched.mark_task_finished(task_id)
         # mark that the node is available
         self.sched.mark_node_available(self.node_id)
-        
+        form_log(f"DONE-RED: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
+
     def mark_slow(self):
         self.slow_status = True
     
