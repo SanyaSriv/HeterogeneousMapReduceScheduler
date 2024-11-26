@@ -2,7 +2,7 @@ import hadoop_wo_overlap
 import node_wo_overlap
 import threading
 # making a node cluster here
-node_cluster = node_wo_overlap.NodeCluster(6, 0.5, 10, 8, 6, 5)
+node_cluster = node_wo_overlap.NodeCluster(10, 0.5, 10, 8, 6, 5)
 
 # defining the tasks here
 tasks = {"0": {"type": "map"},
@@ -10,13 +10,20 @@ tasks = {"0": {"type": "map"},
          "2": {"type": "map"},
          "3": {"type": "map"},
          "4": {"type": "map"},
-         "5": {"type": "map"}}
+         "5": {"type": "map"},
+         "6": {"type": "map"},
+         "7": {"type": "map"},
+         "8": {"type": "map"},
+         "9": {"type": "map"},
+         "10": {"type": "map"},
+         "11": {"type": "map"}}
 
 # making the scheduler instance here
 sched = hadoop_wo_overlap.HadoopScheduler(tasks, 0.9)
 
 node_cluster.set_scheduler(sched)
-node_cluster.init_homogeneous_nodes(2, [0, 1])
+# the 1 parameter will generate random rates according to the hardocded range
+node_cluster.init_homogeneous_nodes(2, [0, 1], 1, [])
 sched.set_node_cluster(node_cluster)
 
 
