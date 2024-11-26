@@ -4,6 +4,7 @@ This file contains the hadoop scheduler class.
 import threading
 import time
 from log import InfoLogger
+import numpy as np
 
 def form_log(msg):
     t = time.time()
@@ -11,10 +12,12 @@ def form_log(msg):
 
 class LateScheduler:
     def __init__(self, tasks, threshold):
-        self.SLOW_NODE_THRES = 0.5
-        self.SLOW_TASK_THRES = 0.5
+        self.SLOW_NODE_THRES = 0
+        self.SLOW_TASK_THRES = 0
+        self.TIME_THRES = 0
         self.task_id = len(tasks) - 1
         self.regular_tasks = {}
+        self.waiting_reduce = {}
         self.duplicate_tasks = {}
         self.running_tasks = {}
         self.regular_tasks = tasks
@@ -27,6 +30,7 @@ class LateScheduler:
         self.task_completion_flag = {}
         self.num_completion = 0
         self.map_num = len(tasks)
+        self.generated = False
         self.lock = threading.Lock()
 
     def set_node_cluster(self, node_cluster):
@@ -40,6 +44,7 @@ class LateScheduler:
                                                 "time_to_completion": 0,
                                                 "progress_rate": 0,
                                                 "total_rate": 0,
+                                                "time": 0,
                                                 "dup": 0}
     
     def update_node_progress(self, id, progress_score, T, task_id, dup):
@@ -49,9 +54,16 @@ class LateScheduler:
             self.node_progress_stats[id]["progress_score"] = progress_score
             self.node_progress_stats[id]["task_id"] = task_id
             self.node_progress_stats[id]["progress_rate"] = progress_score / T
-            self.node_progress_stats[id]["time_to_completion"] = (1 - progress_score) / self.node_progress_stats[id]["progress_rate"]
+            #self.node_progress_stats[id]["time_to_completion"] = (1 - progress_score) / self.node_progress_stats[id]["progress_rate"]
             self.node_progress_stats[id]["dup"] = dup
+            self.node_progress_stats[id]["time"] = T
             self.node_progress_stats[id]["total_rate"] += progress_score / T
+            progress_rates = [node["progress_rate"] for node in self.node_progress_stats.values()]
+            total_rates = [node["total_rate"] for node in self.node_progress_stats.values()]
+            runtimes = [node["time"] for node in self.node_progress_stats.values()]
+            self.SLOW_NODE_THRES = np.percentile(total_rates, 25)
+            self.SLOW_TASK_THRES = np.percentile(progress_rates, 30)
+            self.TIME_THRES = np.percentile(runtimes, 20)
 
     def assign_tasks(self):
         while(True):
@@ -79,31 +91,39 @@ class LateScheduler:
                     if len(self.available_nodes) != 0:
                         ranked_nodes = sorted(
                                 self.node_progress_stats.items(),
-                                key=lambda item: item[1]["time_to_completion"],
-                                reverse=True
-                            ) # prioritize large ttc
+                                key=lambda item: item[1]["progress_rate"],
+                            )
                         for nid, _ in ranked_nodes:
                             #  NID = node ID
-                            if self.node_progress_stats[nid]["progress_rate"] < self.SLOW_TASK_THRES and self.node_progress_stats[nid]["task_id"] != -1 and len(self.running_tasks) != 0:   
+                            if self.node_progress_stats[nid]["progress_rate"] < self.SLOW_TASK_THRES and self.node_progress_stats[nid]["total_rate"] < self.SLOW_NODE_THRES and self.node_progress_stats[nid]["task_id"] != -1 and len(self.running_tasks) != 0:   
                                 tid = self.node_progress_stats[nid]["task_id"] #task_id
-                                if self.node_progress_stats[nid]["total_rate"] < self.SLOW_NODE_THRES:
-                                    print("Do not speculate bc of slow node")
-                                    break
                                 if tid in self.duplicate_tasks or tid not in self.running_tasks:
-                                    break
+                                    continue
                                 task = self.running_tasks[tid][0]
                                 self.duplicate_tasks[tid] = [task,0]
-                                node_id = self.available_nodes.pop()
-                                worker = self.node_cluster.node_pool[node_id]
+                                found = False
+                                found_node_id = -1
+                                for node_id in self.available_nodes:
+                                    if self.node_progress_stats[node_id]["total_rate"] < self.SLOW_NODE_THRES:
+                                        print("Do not speculate bc of slow node", self.SLOW_NODE_THRES, self.node_progress_stats[nid]["total_rate"])
+                                        continue
+                                    else:
+                                        found = True
+                                        found_node_id = node_id
+                                        self.available_nodes.remove(node_id)
+                                        break
+                                if not found:
+                                    continue
+                                worker = self.node_cluster.node_pool[found_node_id]
                                 if task["type"] == "map":
                                     thread = threading.Thread(target=worker.execute_map_task, args=(tid,1))
-                                    self.worker_threads[node_id] = thread
-                                    form_log(f"DUP-MAP-BEGIN: [ORIG_NODE:{nid}] : [NODE:{node_id}] : [TASK:{tid}]")
+                                    self.worker_threads[found_node_id] = thread
+                                    form_log(f"DUP-MAP-BEGIN: [ORIG_NODE:{nid}] : [NODE:{found_node_id}] : [TASK:{tid}]")
                                     thread.start()
                                 elif task["type"] == "reduce":
                                     thread = threading.Thread(target=worker.execute_reduce_task, args=(tid,1))
-                                    self.worker_threads[node_id] = thread
-                                    form_log(f"DUP-RED-BEGIN: [ORIG_NODE:{nid}] : [NODE:{node_id}] : [TASK:{tid}]")
+                                    self.worker_threads[found_node_id] = thread
+                                    form_log(f"DUP-RED-BEGIN: [ORIG_NODE:{nid}] : [NODE:{found_node_id}] : [TASK:{tid}]")
                                     thread.start()
                                 break
             if len(self.regular_tasks) == 0 and len(self.running_tasks) == 0 and len(self.duplicate_tasks) == 0:

@@ -50,6 +50,7 @@ class HadoopScheduler:
 
     def assign_tasks(self):
         while(True):
+            time.sleep(0.5)
             with self.lock:
                 if len(self.regular_tasks) != 0:
                     for tid in self.regular_tasks:
@@ -76,7 +77,7 @@ class HadoopScheduler:
                             if self.node_progress_stats[nid]["progress_score"] < self.threshold and self.node_progress_stats[nid]["task_id"] != -1 and len(self.running_tasks) != 0:   
                                 tid = self.node_progress_stats[nid]["task_id"] #task_id
                                 if tid in self.duplicate_tasks or tid not in self.running_tasks:
-                                    break
+                                    continue
                                 task = self.running_tasks[tid][0]
                                 node_id = self.available_nodes.pop()
                                 worker = self.node_cluster.node_pool[node_id]
