@@ -89,7 +89,7 @@ class Node:
             if task_id in self.sched.task_completion_flag:
                 with self.sched.lock:
                     self.sched.available_nodes.append(self.node_id)
-                    form_log(f"ABORT-REDUNDANT-MAP: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
+                    form_log(f"ABORT-REDUNDANT-MAP: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}] : [STAT:{self.sched.node_progress_stats[self.node_id]["progress_score"]}]")
                     return
             temp_ticks -= self.tick_rate
             current_tick_latency = self.tick_latency
@@ -130,7 +130,7 @@ class Node:
             if task_id in self.sched.task_completion_flag:
                 with self.sched.lock:
                     self.sched.available_nodes.append(self.node_id)
-                    form_log(f"ABORT-REDUNDANT-COPY: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
+                    form_log(f"ABORT-REDUNDANT-COPY: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}] : [STAT:{self.sched.node_progress_stats[self.node_id]["progress_score"]}]")
                     return
             temp_ticks -= self.tick_rate
             current_tick_latency = self.tick_latency
@@ -157,7 +157,7 @@ class Node:
             if task_id in self.sched.task_completion_flag:
                 with self.sched.lock:
                     self.sched.available_nodes.append(self.node_id)
-                    form_log(f"ABORT-REDUNDANT-SORT: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
+                    form_log(f"ABORT-REDUNDANT-SORT: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}] : [STAT:{self.sched.node_progress_stats[self.node_id]["progress_score"]}]")
                     return
             temp_ticks -= self.tick_rate
             current_tick_latency = self.tick_latency
@@ -187,7 +187,7 @@ class Node:
             if task_id in self.sched.task_completion_flag:
                 with self.sched.lock:
                     self.sched.available_nodes.append(self.node_id)
-                    form_log(f"ABORT-REDUNDANT-RED: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
+                    form_log(f"ABORT-REDUNDANT-RED: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}] : [STAT:{self.sched.node_progress_stats[self.node_id]["progress_score"]}]")
                     return
             temp_ticks -= self.tick_rate
             # NODE PENALTY

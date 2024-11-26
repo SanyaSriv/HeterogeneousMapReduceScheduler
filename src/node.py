@@ -11,6 +11,11 @@ that will execute the map/reduce tasks.
 
 import random
 import time
+from log import InfoLogger
+
+def form_log(msg):
+    t = time.time()
+    InfoLogger.info(f"LOGGING - NODE - [{t}] - {msg}")
 class NodeCluster:
     def __init__(self, num_nodes, tick_latency, map_total_tick, reduce_total_tick, copy_total_tick, sort_total_tick):
         self.num_nodes = num_nodes # number of nodes (workers) to establish
@@ -29,14 +34,16 @@ class NodeCluster:
         This function should make homogeneous self.num_nodes number of nodes.
         Every node should have the same properties. 
         """
+        form_log(f"NODES CREATED")
         # we need to have atleast 1 straggler
         number_of_straglers = random.randint(1, int(self.num_nodes / 2))
         # generate which node IDs will become stragglers
         straggler_list = [random.randint(0, self.num_nodes-1) for _ in range(number_of_straglers)]
-        for i in range(0, self.num_nodes):
+        for i in range(0, self.num_nodes):    
             rangeA = 1.5 # can adjust it later
             rangeB = 4 # can adjust it later
             if i in straggler_list:
+                form_log(f"STRAGGLER: [NODE:{i}]")
                 rangeA = 0.1 # can adjust it later
                 rangeB = 1.5 # can adjust it later
             self.node_pool[i] = Node(i, 
@@ -44,7 +51,7 @@ class NodeCluster:
                                     self.tick_latency, 
                                     rangeA, rangeB, 
                                     self.sched) # setting it at 100 by default for now
-
+            form_log(f"CREATE-NODE: [NODE:{i}]")
     def set_slow_status(self, node_id):
         self.node_pool[node_id].mark_slow()
 
@@ -60,6 +67,7 @@ class NodeCluster:
         should be equal to the self.num_nodes parameter.
         """
         pass
+
 class Node:
     def __init__(self, node_id, map_total_tick, reduce_total_tick,
                 copy_total_tick, sort_total_tick, tick_latency, tick_rate_rangeA, tick_rate_rangeB, sched):
@@ -74,45 +82,48 @@ class Node:
         self.SORT_TOTAL_TICK = sort_total_tick
 
     def execute_map_task(self, task_id):
+        # adding a redundant DUP parameter so we do not have to change the entire graph gen implementation
+        form_log(f"BEGIN-MAP: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
         temp_ticks = self.MAP_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency)
-            if self.sched.id in ["late", "hadoop"]:
-                ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
-        # once it is done, it should add a copy task to the list of tasks
-        self.sched.mark_map_task_finished()
-        self.sched.add_task(str(task_id) + "_cpy", {"type": "copy"})
-    
-    def execute_copy_task(self, task_id):
+        
+        # mark that the task if finished
+        self.sched.mark_task_finished(task_id)
+        # mark that the node is available
+        self.sched.mark_node_available(self.node_id)
+        form_log(f"DONE-MAP: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
+
+    def execute_red_task(self, task_id):
+        form_log(f"BEGIN-COPY: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
         temp_ticks = self.COPY_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency)
-            if self.sched.id in ["late", "hadoop"]:
-                ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
-        # once it is done, it should add a sort task to the list of tasks
-        self.sched.add_task(str(task_id) + "_sort", {"type": "sort"})
+        form_log(f"DONE-COPY: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
 
-    def execute_sort_task(self, task_id):
+        # once copy is done, we can begin sort
+        form_log(f"BEGIN-SORT: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
         temp_ticks = self.SORT_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency)
-            if self.sched.id in ["late", "hadoop"]:
-                ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
-        # once it is done, it should add a reduce task to the list of tasks
-        self.sched.add_task(str(task_id) + "_red", {"type": "reduce"})
+        form_log(f"DONE-SORT: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
 
-    def execute_reduce_task(self, task_id):
+        # once sort is done, we can begin reduce but we need to wait till all map tasks finish
+        while (self.sched.map_tasks > 0):
+            continue
+        
+        form_log(f"BEGIN-RED: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
         temp_ticks = self.REDUCE_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency)
-            if self.sched.id in ["late", "hadoop"]:
-                ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
-        # once it is done, it would not add any more tasks
-
+        self.sched.mark_task_finished(task_id)
+        # mark that the node is available
+        self.sched.mark_node_available(self.node_id)
+        form_log(f"DONE-RED: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:0]")
 
     def mark_slow(self):
         self.slow_status = True

@@ -1,5 +1,6 @@
 import naive_sched
 import node
+import threading
 
 # making a node cluster here
 node_cluster = node.NodeCluster(5, 0.5, 5, 10, 10, 5)
@@ -20,4 +21,13 @@ node_cluster.set_scheduler(sched)
 node_cluster.init_homogeneous_nodes()
 sched.set_node_cluster(node_cluster)
 
-sched.assign_tasks()
+
+# Create threads for both functions
+scheduler_thread = threading.Thread(target=sched.assign_tasks)
+gen_thread = threading.Thread(target=sched.generate_tasks)
+
+scheduler_thread.start()
+gen_thread.start()
+
+scheduler_thread.join()
+gen_thread.join()
