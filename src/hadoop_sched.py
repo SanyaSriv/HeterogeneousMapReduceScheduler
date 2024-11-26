@@ -25,9 +25,7 @@ class HadoopScheduler:
         self.task_completion_flag = {}
         self.num_completion = 0
         self.map_num = len(tasks)
-        self.lock_stats = threading.Lock()
-        self.lock_tasks = threading.Lock()
-        self.lock_nodes = threading.Lock()
+        self.lock = threading.Lock()
 
     
     def set_node_cluster(self, node_cluster):
@@ -45,23 +43,22 @@ class HadoopScheduler:
     def update_node_progress(self, id, progress_score, T, task_id, dup):
         """Function to change the progress stats of a node"""
         # ID = node ID
-        with self.lock_stats:
+        with self.lock:
             self.node_progress_stats[id]["progress_score"] = progress_score
             self.node_progress_stats[id]["task_id"] = task_id
             self.node_progress_stats[id]["dup"] = dup
 
     def assign_tasks(self):
         while(True):
-            if len(self.regular_tasks) != 0:
-                for tid in self.regular_tasks:
-                    task = self.regular_tasks[tid]
-                    with self.lock_nodes:
+            with self.lock:
+                if len(self.regular_tasks) != 0:
+                    for tid in self.regular_tasks:
+                        task = self.regular_tasks[tid]
                         if len(self.available_nodes) != 0:
                             node_id = self.available_nodes.pop()
                             worker = self.node_cluster.node_pool[node_id]
-                            with self.lock_tasks:
-                                self.regular_tasks.pop(tid)
-                                self.running_tasks[tid] = [task, 0]
+                            self.regular_tasks.pop(tid)
+                            self.running_tasks[tid] = [task, 0]
                             if task["type"] == "map":
                                 form_log(f"ASSIGN-MAP: [TASK:{tid}] : [NODE:{node_id}]")
                                 thread = threading.Thread(target=worker.execute_map_task, args=(tid,0))
@@ -72,21 +69,18 @@ class HadoopScheduler:
                                 thread = threading.Thread(target=worker.execute_reduce_task, args=(tid,0))
                                 self.worker_threads[node_id] = thread
                                 thread.start()
-                    break
-            else:
-                if len(self.available_nodes) != 0:
-                    for nid in self.node_progress_stats:
-                        #  NID = node ID
-                        with self.lock_tasks: 
+                            break
+                else:
+                    if len(self.available_nodes) != 0:
+                        for nid in self.node_progress_stats:
                             if self.node_progress_stats[nid]["progress_score"] < self.threshold and self.node_progress_stats[nid]["task_id"] != -1 and len(self.running_tasks) != 0:   
                                 tid = self.node_progress_stats[nid]["task_id"] #task_id
                                 if tid in self.duplicate_tasks or tid not in self.running_tasks:
                                     break
                                 task = self.running_tasks[tid][0]
+                                node_id = self.available_nodes.pop()
+                                worker = self.node_cluster.node_pool[node_id]
                                 self.duplicate_tasks[tid] = [task,0]
-                                with self.lock_nodes:
-                                    node_id = self.available_nodes.pop()
-                                    worker = self.node_cluster.node_pool[node_id]
                                 if task["type"] == "map":
                                     thread = threading.Thread(target=worker.execute_map_task, args=(tid,1))
                                     self.worker_threads[node_id] = thread
@@ -97,17 +91,17 @@ class HadoopScheduler:
                                     self.worker_threads[node_id] = thread
                                     form_log(f"DUP-RED-BEGIN: [ORIG_NODE:{nid}] : [NODE:{node_id}] : [TASK:{tid}]")
                                     thread.start()
-                        break
-            if len(self.regular_tasks) == 0 and len(self.running_tasks) == 0 and len(self.duplicate_tasks) == 0:
-                break
+                                break
+                if len(self.regular_tasks) == 0 and len(self.running_tasks) == 0 and len(self.duplicate_tasks) == 0:
+                    break
 
 
     def generate_next_tasks(self):
         while(True):
-            for tid in self.running_tasks:
-                with self.lock_tasks:
-                    if self.running_tasks[tid][1] == 1 or (tid in self.duplicate_tasks and self.duplicate_tasks[tid][1] == 1):
-                        time.sleep(1)  
+            with self.lock:
+                for tid in self.running_tasks:
+                    if tid in self.task_completion_flag:
+                        time.sleep(0.1)  
                         if self.running_tasks[tid][0]["type"] == "map":
                             self.task_id += 1
                             self.num_completion += 1
@@ -120,8 +114,8 @@ class HadoopScheduler:
                             if self.duplicate_tasks[tid][1] == 0:
                                 form_log(f"DUP-WASTE : [TASK:{tid}]")
                             self.duplicate_tasks.pop(tid)
-                break
-            if len(self.regular_tasks) == 0 and len(self.running_tasks) == 0 and len(self.duplicate_tasks) == 0:
-                assert(len(self.task_completion_flag) == self.task_id + 1)
-                print("final:",self.available_nodes)
-                break
+                        break
+                if len(self.regular_tasks) == 0 and len(self.running_tasks) == 0 and len(self.duplicate_tasks) == 0:
+                    assert(len(self.task_completion_flag) == self.task_id + 1)
+                    print("final:",self.available_nodes)
+                    break
