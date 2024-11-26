@@ -55,7 +55,7 @@ class NaiveScheduler:
         self.node_availibility[node_id] = 1
         print("node has been marked as available")
 
-    def generate_tasks(self):
+    def generate_next_tasks(self):
         """
         Function to generate tasks. There would be no speculative tasks, so the only tasks generated
         would be copy-sort-reduce (task with 3 phases).
