@@ -41,13 +41,14 @@ class NodeCluster:
         # generate which node IDs will become stragglers
         # straggler_list = [random.randint(0, self.num_nodes-1) for _ in range(number_of_straglers)]
         straggler_list = lis_straggler
-        for i in range(0, self.num_nodes): 
+        for i in range(0, self.num_nodes):
+            if i in straggler_list:
+                form_log(f"STRAGGLER: [NODE:{i}]") 
             if (random_speed == 1):
                 # if this is turned on, then generate a random speed for the tasks   
                 rangeA = 1.5 # can adjust it later
                 rangeB = 4 # can adjust it later
                 if i in straggler_list:
-                    form_log(f"STRAGGLER: [NODE:{i}]")
                     rangeA = 0.1 # can adjust it later
                     rangeB = 1.5 # can adjust it later
                 tick_rate = random.uniform(rangeA, rangeB)
