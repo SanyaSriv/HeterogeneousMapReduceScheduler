@@ -3,7 +3,7 @@ import node
 import threading
 
 # making a node cluster here
-node_cluster = node.NodeCluster(5, 0.5, 5, 10, 10, 5)
+node_cluster = node.NodeCluster(6, 0.5, 5, 10, 10, 5)
 
 # defining the tasks here
 tasks = {"0": {"type": "map"},
@@ -18,7 +18,7 @@ sched = naive_sched.NaiveScheduler(tasks)
 
 sched.set_node_cluster(node_cluster)
 node_cluster.set_scheduler(sched)
-node_cluster.init_homogeneous_nodes()
+node_cluster.init_homogeneous_nodes(2, [0, 1])
 sched.set_node_cluster(node_cluster)
 
 

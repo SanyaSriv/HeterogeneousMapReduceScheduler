@@ -89,7 +89,13 @@ class Node:
         temp_ticks = self.MAP_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
-            time.sleep(self.tick_latency)
+
+            current_tick_latency = self.tick_latency
+            if self.node_id % 2 == 0 and self.sched.node_availibility[self.node_id + 1] == 0:
+                current_tick_latency = 1.05 * current_tick_latency
+            elif self.node_id % 2 == 1 and self.sched.node_availibility[self.node_id - 1] == 0:
+                current_tick_latency = 1.05 * current_tick_latency
+            time.sleep(current_tick_latency)
         
         # mark that the task if finished
         self.sched.mark_task_finished(task_id)
