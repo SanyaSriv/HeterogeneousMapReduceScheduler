@@ -60,6 +60,7 @@ class NodeCluster:
         should be equal to the self.num_nodes parameter.
         """
         pass
+
 class Node:
     def __init__(self, node_id, map_total_tick, reduce_total_tick,
                 copy_total_tick, sort_total_tick, tick_latency, tick_rate_rangeA, tick_rate_rangeB, sched):
@@ -78,42 +79,36 @@ class Node:
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency)
-            if self.sched.id in ["late", "hadoop"]:
-                ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
-        # once it is done, it should add a copy task to the list of tasks
-        self.sched.mark_map_task_finished()
-        self.sched.add_task(str(task_id) + "_cpy", {"type": "copy"})
+        
+        # mark that the task if finished
+        self.sched.mark_task_finished(task_id)
+        # mark that the node is available
+        self.sched.mark_node_available(self.node_id)
     
     def execute_copy_task(self, task_id):
         temp_ticks = self.COPY_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency)
-            if self.sched.id in ["late", "hadoop"]:
-                ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
-        # once it is done, it should add a sort task to the list of tasks
-        self.sched.add_task(str(task_id) + "_sort", {"type": "sort"})
 
-    def execute_sort_task(self, task_id):
+        # once copy is done, we can begin sort
         temp_ticks = self.SORT_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency)
-            if self.sched.id in ["late", "hadoop"]:
-                ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
-        # once it is done, it should add a reduce task to the list of tasks
-        self.sched.add_task(str(task_id) + "_red", {"type": "reduce"})
 
-    def execute_reduce_task(self, task_id):
+        # once sort is done, we can begin reduce but we need to wait till all map tasks finish
+        while (self.sched.map_tasks > 0):
+            continue
+
         temp_ticks = self.REDUCE_TOTAL_TICK
         while temp_ticks > 0:
             temp_ticks -= self.tick_rate
             time.sleep(self.tick_latency)
-            if self.sched.id in ["late", "hadoop"]:
-                ret = self.sched.update_task_progress(temp_ticks, self.total_tick)
-        # once it is done, it would not add any more tasks
-
-
+        self.sched.mark_task_finished(task_id)
+        # mark that the node is available
+        self.sched.mark_node_available(self.node_id)
+        
     def mark_slow(self):
         self.slow_status = True
     
