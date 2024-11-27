@@ -3,6 +3,7 @@ This file contains the hadoop scheduler class.
 """
 import threading
 import time
+import numpy as np
 from log import InfoLogger
 
 def form_log(msg):
@@ -13,6 +14,7 @@ class HadoopScheduler:
     def __init__(self, tasks, threshold):
         self.task_id = len(tasks) - 1
         self.regular_tasks = {}
+        self.AVG = 0.5
         self.duplicate_tasks = {}
         self.running_tasks = {}
         self.regular_tasks = tasks
@@ -47,10 +49,12 @@ class HadoopScheduler:
             self.node_progress_stats[id]["progress_score"] = progress_score
             self.node_progress_stats[id]["task_id"] = task_id
             self.node_progress_stats[id]["dup"] = dup
+            scores = [node["progress_score"] for node in self.node_progress_stats.values()]
+            filter_mean = lambda x: np.mean([val for val in x if val < 1])
+            self.AVG = filter_mean(scores)
 
     def assign_tasks(self):
         while(True):
-            time.sleep(0.5)
             with self.lock:
                 if len(self.regular_tasks) != 0:
                     for tid in self.regular_tasks:
