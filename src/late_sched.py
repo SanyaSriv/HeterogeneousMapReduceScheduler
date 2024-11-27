@@ -113,7 +113,7 @@ class LateScheduler:
                                         self.available_nodes.remove(node_id)
                                         break
                                 if not found:
-                                    continue
+                                    break
                                 worker = self.node_cluster.node_pool[found_node_id]
                                 if task["type"] == "map":
                                     thread = threading.Thread(target=worker.execute_map_task, args=(tid,1))

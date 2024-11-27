@@ -58,11 +58,11 @@ class LateScheduler:
             self.node_progress_stats[id]["dup"] = dup
             self.node_progress_stats[id]["time"] = T
             self.node_progress_stats[id]["total_rate"] += progress_score / T
-            progress_rates = [node["progress_rate"] for node in self.node_progress_stats.values()]
+            progress_rates = [node["progress_rate"] for node in self.node_progress_stats.values() if node["task_id"] not in self.task_completion_flag]
             total_rates = [node["total_rate"] for node in self.node_progress_stats.values()]
             runtimes = [node["time"] for node in self.node_progress_stats.values()]
             self.SLOW_NODE_THRES = np.percentile(total_rates, 25)
-            self.SLOW_TASK_THRES = np.percentile(progress_rates, 30)
+            self.SLOW_TASK_THRES = np.percentile(progress_rates, 30) if len(progress_rates) > 0 else self.SLOW_TASK_THRES
             self.TIME_THRES = np.percentile(runtimes, 20)
 
     def assign_tasks(self):
@@ -95,7 +95,9 @@ class LateScheduler:
                             )
                         for nid, _ in ranked_nodes:
                             #  NID = node ID
-                            if self.node_progress_stats[nid]["progress_rate"] < self.SLOW_TASK_THRES and self.node_progress_stats[nid]["total_rate"] < self.SLOW_NODE_THRES and self.node_progress_stats[nid]["task_id"] != -1 and len(self.running_tasks) != 0:   
+                            if nid == 6:
+                                print(self.node_progress_stats[nid]["total_rate"], self.SLOW_NODE_THRES)
+                            if self.node_progress_stats[nid]["progress_rate"] <= self.SLOW_TASK_THRES  and self.node_progress_stats[nid]["task_id"] != -1 and len(self.running_tasks) != 0:   
                                 tid = self.node_progress_stats[nid]["task_id"] #task_id
                                 if tid in self.duplicate_tasks or tid not in self.running_tasks:
                                     continue
@@ -113,7 +115,7 @@ class LateScheduler:
                                         self.available_nodes.remove(node_id)
                                         break
                                 if not found:
-                                    continue
+                                    break
                                 worker = self.node_cluster.node_pool[found_node_id]
                                 if task["type"] == "map":
                                     thread = threading.Thread(target=worker.execute_map_task, args=(tid,1))
