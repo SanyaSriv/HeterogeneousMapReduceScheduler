@@ -94,36 +94,36 @@ subprocess.run(['touch', 'log.txt'], check=True)
 subprocess.run(["mv", "HadoopExperiment8.txt", "experiment_logs/HadoopExperiment8.txt"], check=True)
 time.sleep(5)
 
-sched = hadoop_wo_overlap.HadoopScheduler(HadoopNoOverlapTaskList, 0.3)
-run(sched, HadoopNoOverlapNodeClusters[0], 4, [0, 1, 6, 7], 0, speed_list)
-# move the log.txt file to a diff location
-subprocess.run(["mv", "log.txt", "HadoopNoOverlapExperiment8.txt"], check=True)
-subprocess.run(['python3', 'interpret_log.py', '--log_file', 'HadoopNoOverlapExperiment8.txt', '--output_dir', 'experiment_graphs'], check=True)
-subprocess.run(['mv', 'experiment_graphs/copy_sort_red.png', 'experiment_graphs/HadoopNoOverlapExperiment8.png'], check=True)
-subprocess.run(["mv", "HadoopNoOverlapExperiment8.txt", "experiment_logs/HadoopNoOverlapExperiment8.txt"], check=True)
-time.sleep(5)
+# sched = hadoop_wo_overlap.HadoopScheduler(HadoopNoOverlapTaskList, 0.3)
+# run(sched, HadoopNoOverlapNodeClusters[0], 4, [0, 1, 6, 7], 0, speed_list)
+# # move the log.txt file to a diff location
+# subprocess.run(["mv", "log.txt", "HadoopNoOverlapExperiment8.txt"], check=True)
+# subprocess.run(['python3', 'interpret_log.py', '--log_file', 'HadoopNoOverlapExperiment8.txt', '--output_dir', 'experiment_graphs'], check=True)
+# subprocess.run(['mv', 'experiment_graphs/copy_sort_red.png', 'experiment_graphs/HadoopNoOverlapExperiment8.png'], check=True)
+# subprocess.run(["mv", "HadoopNoOverlapExperiment8.txt", "experiment_logs/HadoopNoOverlapExperiment8.txt"], check=True)
+# time.sleep(5)
 
-sched = naive_sched.NaiveScheduler(NaiveTaskList)
-run(sched, NaiveNodeClusters[0], 4, [0, 1, 6, 7], 0, speed_list)
-# move the log.txt file to a diff location
-subprocess.run(["mv", "log.txt", "NaiveExperiment8.txt"], check=True)
-subprocess.run(['python3', 'interpret_log.py', '--log_file', 'NaiveExperiment8.txt', '--output_dir', 'experiment_graphs'], check=True)
-subprocess.run(['mv', 'experiment_graphs/copy_sort_red.png', 'experiment_graphs/NaiveExperiment8.png'], check=True)
-subprocess.run(["mv", "NaiveExperiment8.txt", "experiment_logs/NaiveExperiment8.txt"], check=True)
+# sched = naive_sched.NaiveScheduler(NaiveTaskList)
+# run(sched, NaiveNodeClusters[0], 4, [0, 1, 6, 7], 0, speed_list)
+# # move the log.txt file to a diff location
+# subprocess.run(["mv", "log.txt", "NaiveExperiment8.txt"], check=True)
+# subprocess.run(['python3', 'interpret_log.py', '--log_file', 'NaiveExperiment8.txt', '--output_dir', 'experiment_graphs'], check=True)
+# subprocess.run(['mv', 'experiment_graphs/copy_sort_red.png', 'experiment_graphs/NaiveExperiment8.png'], check=True)
+# subprocess.run(["mv", "NaiveExperiment8.txt", "experiment_logs/NaiveExperiment8.txt"], check=True)
 
-sched = late_sched.LateScheduler(LateTaskList, 0)
-run(sched, LateNodeClusters[0], 4, [0, 1, 6, 7], 0, speed_list)
-# move the log.txt file to a diff location
-subprocess.run(["mv", "log.txt", "LateExperiment8.txt"], check=True)
-subprocess.run(['python3', 'interpret_log.py', '--log_file', 'LateExperiment8.txt', '--output_dir', 'experiment_graphs'], check=True)
-subprocess.run(['mv', 'experiment_graphs/copy_sort_red.png', 'experiment_graphs/LateExperiment8.png'], check=True)
-subprocess.run(["mv", "LateExperiment8.txt", "experiment_logs/LateExperiment8.txt"], check=True)
+# sched = late_sched.LateScheduler(LateTaskList, 0)
+# run(sched, LateNodeClusters[0], 4, [0, 1, 6, 7], 0, speed_list)
+# # move the log.txt file to a diff location
+# subprocess.run(["mv", "log.txt", "LateExperiment8.txt"], check=True)
+# subprocess.run(['python3', 'interpret_log.py', '--log_file', 'LateExperiment8.txt', '--output_dir', 'experiment_graphs'], check=True)
+# subprocess.run(['mv', 'experiment_graphs/copy_sort_red.png', 'experiment_graphs/LateExperiment8.png'], check=True)
+# subprocess.run(["mv", "LateExperiment8.txt", "experiment_logs/LateExperiment8.txt"], check=True)
 
-sched = late_wo_overlap.LateScheduler(LateNoOverlapTaskList, 0)
-run(sched, LateNoOverlapNodeClusters[0], 4, [0, 1, 6, 7], 0, speed_list)
-# move the log.txt file to a diff location
-subprocess.run(["mv", "log.txt", "LateNoOverlapExperiment8.txt"], check=True)
-subprocess.run(['python3', 'interpret_log.py', '--log_file', 'LateNoOverlapExperiment8.txt', '--output_dir', 'experiment_graphs'], check=True)
-subprocess.run(['mv', 'experiment_graphs/copy_sort_red.png', 'experiment_graphs/LateNoOverlapExperiment8.png'], check=True)
-subprocess.run(["mv", "LateNoOverlapExperiment8.txt", "experiment_logs/LateNoOverlapExperiment8.txt"], check=True)
+# sched = late_wo_overlap.LateScheduler(LateNoOverlapTaskList, 0)
+# run(sched, LateNoOverlapNodeClusters[0], 4, [0, 1, 6, 7], 0, speed_list)
+# # move the log.txt file to a diff location
+# subprocess.run(["mv", "log.txt", "LateNoOverlapExperiment8.txt"], check=True)
+# subprocess.run(['python3', 'interpret_log.py', '--log_file', 'LateNoOverlapExperiment8.txt', '--output_dir', 'experiment_graphs'], check=True)
+# subprocess.run(['mv', 'experiment_graphs/copy_sort_red.png', 'experiment_graphs/LateNoOverlapExperiment8.png'], check=True)
+# subprocess.run(["mv", "LateNoOverlapExperiment8.txt", "experiment_logs/LateNoOverlapExperiment8.txt"], check=True)
 
