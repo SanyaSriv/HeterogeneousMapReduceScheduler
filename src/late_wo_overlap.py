@@ -14,6 +14,7 @@ class LateScheduler:
     def __init__(self, tasks, threshold):
         self.SLOW_NODE_THRES = 0
         self.SLOW_TASK_THRES = 0
+        self.FAST_NODE_THRES = 0
         self.TIME_THRES = 0
         self.task_id = len(tasks) - 1
         self.regular_tasks = {}
@@ -63,6 +64,7 @@ class LateScheduler:
             runtimes = [node["time"] for node in self.node_progress_stats.values()]
             self.SLOW_NODE_THRES = np.percentile(total_rates, 25)
             self.SLOW_TASK_THRES = np.percentile(progress_rates, 30) if len(progress_rates) > 0 else self.SLOW_TASK_THRES
+            self.FAST_NODE_THRES = np.percentile(total_rates, 75)
             self.TIME_THRES = np.percentile(runtimes, 20)
 
     def assign_tasks(self):
@@ -95,9 +97,7 @@ class LateScheduler:
                             )
                         for nid, _ in ranked_nodes:
                             #  NID = node ID
-                            if nid == 6:
-                                print(self.node_progress_stats[nid]["total_rate"], self.SLOW_NODE_THRES)
-                            if self.node_progress_stats[nid]["progress_rate"] <= self.SLOW_TASK_THRES  and self.node_progress_stats[nid]["task_id"] != -1 and len(self.running_tasks) != 0:   
+                            if self.node_progress_stats[nid]["progress_rate"] < self.SLOW_TASK_THRES and self.node_progress_stats[nid]["total_rate"] > self.FAST_NODE_THRES and self.node_progress_stats[nid]["task_id"] != -1 and len(self.running_tasks) != 0: 
                                 tid = self.node_progress_stats[nid]["task_id"] #task_id
                                 if tid in self.duplicate_tasks or tid not in self.running_tasks:
                                     continue
