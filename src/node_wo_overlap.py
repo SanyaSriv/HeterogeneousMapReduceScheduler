@@ -210,12 +210,15 @@ class Node:
             ret = self.sched.update_node_progress(self.node_id, 2/3 + (1-max(0,temp_ticks/self.REDUCE_TOTAL_TICK))/3, t, task_id, dup)
         
         with self.sched.lock:
-            if task_id not in self.sched.task_completion_flag:
+            if task_id in self.sched.task_completion_flag:
+                self.sched.available_nodes.append(self.node_id)
+                form_log(f"ABORT-REDUNDANT-RED: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}] : [STAT:{self.sched.node_progress_stats[self.node_id]["progress_score"]}]")
+                return
+            else:
                 if dup:
                     self.sched.duplicate_tasks[task_id][1] = 1
                 else:
                     self.sched.running_tasks[task_id][1] = 1
                 self.sched.task_completion_flag[task_id] = True
-            self.sched.available_nodes.append(self.node_id)
-        # once it is done, it would not add any more tasks
-        form_log(f"DONE-RED: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
+                self.sched.available_nodes.append(self.node_id)
+                form_log(f"DONE-RED: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
