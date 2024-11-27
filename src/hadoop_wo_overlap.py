@@ -82,7 +82,7 @@ class HadoopScheduler:
                         for nid in self.node_progress_stats:
                             # if self.node_progress_stats[nid]["progress_score"] > self.threshold:
                             #     print("rejected because high")
-                            if self.node_progress_stats[nid]["progress_score"] < self.threshold and self.node_progress_stats[nid]["task_id"] != -1 and len(self.running_tasks) != 0:   
+                            if self.node_progress_stats[nid]["progress_score"] < self.AVG and self.node_progress_stats[nid]["task_id"] != -1 and len(self.running_tasks) != 0:   
                                 tid = self.node_progress_stats[nid]["task_id"] #task_id
                                 if tid in self.duplicate_tasks or tid not in self.running_tasks:
                                     continue
