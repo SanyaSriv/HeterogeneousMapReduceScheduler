@@ -28,7 +28,7 @@ class HadoopScheduler:
         self.num_completion = 0
         self.map_num = len(tasks)
         self.lock = threading.Lock()
-        self.AVG
+        self.AVG = 0
         self.generated = False
 
     

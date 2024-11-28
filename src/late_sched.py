@@ -97,7 +97,7 @@ class LateScheduler:
                             )
                         for nid, _ in ranked_nodes:
                             #  NID = node ID
-                            if self.node_progress_stats[nid]["progress_rate"] < self.SLOW_TASK_THRES and self.node_progress_stats[nid]["total_rate"] > self.FAST_NODE_THRES and self.node_progress_stats[nid]["task_id"] != -1 and len(self.running_tasks) != 0:   
+                            if self.node_progress_stats[nid]["progress_rate"] < self.SLOW_TASK_THRES and self.node_progress_stats[nid]["total_rate"] < self.FAST_NODE_THRES and self.node_progress_stats[nid]["task_id"] != -1 and len(self.running_tasks) != 0:   
                                 tid = self.node_progress_stats[nid]["task_id"] #task_id
                                 if tid in self.duplicate_tasks or tid not in self.running_tasks:
                                     continue
