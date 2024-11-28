@@ -45,6 +45,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--log_file") # input log file
     parser.add_argument("--output_dir") # output directory where all the plots would be saved
+    parser.add_argument("--output_file_name") # output directory where all the plots would be saved
     args = parser.parse_args()
 
     # this should be a dictionary
@@ -65,18 +66,18 @@ def main():
     nodes = [int(x['params']['NODE']) for x in sched_logs["ASSIGN-MAP"]]
     tasks = [x['params']['TASK'] for x in sched_logs["ASSIGN-MAP"]]
     plt.figure(figsize=(10, 6))
-    for i in range(len(timestamps)):
-        plt.barh(nodes[i], 0.02, left=timestamps[i], color="skyblue", edgecolor="black", height=0.55)
-        plt.text(timestamps[i] + 0.04, nodes[i], f"{tasks[i]}", va='center', fontsize=10)
-    plt.xlabel("Timestamp")
-    plt.ylabel("Node ID")
-    plt.title("Map Task Assignment Timeline (Straggler Nodes Highlighted)")
-    plt.grid(axis='x', linestyle='-')
-    node_colors = ["red" if node in straggler_node_list else "black" for node in node_list]
-    for tick, color in zip(plt.yticks(node_list)[1], node_colors):
-        tick.set_color(color)
-    plt.tight_layout()
-    plt.savefig(args.output_dir + "/map_assignment.png")
+    # for i in range(len(timestamps)):
+    #     plt.barh(nodes[i], 0.02, left=timestamps[i], color="skyblue", edgecolor="black", height=0.55)
+    #     plt.text(timestamps[i] + 0.04, nodes[i], f"{tasks[i]}", va='center', fontsize=10)
+    # plt.xlabel("Timestamp")
+    # plt.ylabel("Node ID")
+    # # plt.title("Map Task Assignment Timeline (Straggler Nodes Highlighted)")
+    # plt.grid(axis='x', linestyle='-')
+    # node_colors = ["red" if node in straggler_node_list else "black" for node in node_list]
+    # for tick, color in zip(plt.yticks(node_list)[1], node_colors):
+    #     tick.set_color(color)
+    # plt.tight_layout()
+    # plt.savefig(args.output_dir + "/map_assignment.png")
 
     text = []
 
@@ -84,6 +85,7 @@ def main():
     #Third graph -- showing the beginning of task execution and also the end of it
     # extracting data about when map tasks begin
     timestamps_begin = [float(x['timestamp']) for x in node_logs["BEGIN-MAP"]]
+    MINIMIM_TIMESTAMP = min(timestamps_begin)
     nodes1 = [int(x['params']['NODE']) for x in node_logs["BEGIN-MAP"]]
     tasks1 = [int(x['params']['TASK']) for x in node_logs["BEGIN-MAP"]]
     dup1 = [int(x['params']['DUP']) for x in node_logs["BEGIN-MAP"]]
@@ -145,8 +147,8 @@ def main():
             to_disp = tasks1[i]
         else:
             to_disp = "{} | {:.2f}".format(tasks1[i], score[pair])
-        plt.barh(nodes1[i], time_end - timestamps_begin[i], left=timestamps_begin[i], color=c1, edgecolor="black", height=0.55)
-        t = plt.text(timestamps_begin[i] + 0.04, nodes1[i], to_disp, va='center', fontsize=10, color=c2)
+        plt.barh(nodes1[i], time_end - timestamps_begin[i], left=timestamps_begin[i] - MINIMIM_TIMESTAMP, color=c1, edgecolor="black", height=0.55)
+        t = plt.text(timestamps_begin[i] - MINIMIM_TIMESTAMP + 0.04, nodes1[i], to_disp, va='center', fontsize=10, color=c2)
         text.append(t)
     # plt.xlabel("Timestamp")
     # plt.ylabel("Node ID")
@@ -224,8 +226,8 @@ def main():
             to_disp = cpy_tasks1[i]
         else:
             to_disp = "{} | {:.2f}".format(cpy_tasks1[i], score[pair])
-        plt.barh(cpy_nodes1[i], time_end - cpy_timestamps_begin[i], left=cpy_timestamps_begin[i], color=c, edgecolor="black", height=0.55)
-        t = plt.text(cpy_timestamps_begin[i] + 0.04, cpy_nodes1[i], to_disp, va='center', fontsize=10)
+        plt.barh(cpy_nodes1[i], time_end - cpy_timestamps_begin[i], left=cpy_timestamps_begin[i] - MINIMIM_TIMESTAMP, color=c, edgecolor="black", height=0.55)
+        t = plt.text(cpy_timestamps_begin[i] - MINIMIM_TIMESTAMP + 0.04, cpy_nodes1[i], to_disp, va='center', fontsize=10)
         text.append(t)
     
     # computing the same things for sort because the copy - sort - and reduce phases are combined into 1 task
@@ -290,8 +292,8 @@ def main():
             to_disp = sort_tasks1[i]
         else:
             to_disp = "{} | {:.2f}".format(sort_tasks1[i], score[pair])
-        plt.barh(sort_nodes1[i], time_end - sort_timestamps_begin[i], left=sort_timestamps_begin[i], color=c, edgecolor="black", height=0.55)
-        t = plt.text(sort_timestamps_begin[i]+0.04, sort_nodes1[i], to_disp, va="center", fontsize=10)
+        plt.barh(sort_nodes1[i], time_end - sort_timestamps_begin[i], left=sort_timestamps_begin[i] - MINIMIM_TIMESTAMP, color=c, edgecolor="black", height=0.55)
+        t = plt.text(sort_timestamps_begin[i] - MINIMIM_TIMESTAMP + 0.04, sort_nodes1[i], to_disp, va="center", fontsize=10)
         text.append(t)
     # adding data about reduce tasks here
     red_timestamps_begin = [float(x['timestamp']) for x in node_logs["BEGIN-RED"]]
@@ -345,6 +347,7 @@ def main():
             time_end = red_time_stamp_dict_end[pair]
         elif pair in red_redundant_time_stamp_dict:
             time_end = red_redundant_time_stamp_dict[pair]
+            print("time end found in red", pair)
             score_display = 1
         else:
             print("NO END TIME FOUND FOR RED PHASE: ", pair)
@@ -357,8 +360,8 @@ def main():
             to_disp = red_tasks1[i]
         else:
             to_disp = "{} | {:.2f}".format(red_tasks1[i], score[pair])
-        plt.barh(red_nodes1[i], time_end - red_timestamps_begin[i], left=red_timestamps_begin[i], color=c, edgecolor="black", height=0.55)
-        t = plt.text(red_timestamps_begin[i]+0.04, red_nodes1[i], to_disp, va="center", fontsize=10)
+        plt.barh(red_nodes1[i], time_end - red_timestamps_begin[i], left=red_timestamps_begin[i] - MINIMIM_TIMESTAMP, color=c, edgecolor="black", height=0.55)
+        t = plt.text(red_timestamps_begin[i] - MINIMIM_TIMESTAMP + 0.04, red_nodes1[i], to_disp, va="center", fontsize=10)
         text.append(t)
     # collecting all timestamps when a red generation happens
     red_gen_timestamps = [float(x['timestamp']) for x in sched_logs["GEN-RED"]]
@@ -374,16 +377,18 @@ def main():
     # plt.xticks(red_gen_timestamps)
 
 
-    plt.xlabel("Timestamp")
-    plt.ylabel("Node ID")
-    plt.title("Copy-Sort-Reduce Timeline (Straggler Nodes Highlighted)")
-    plt.grid(axis='x', linestyle='-')
+    plt.xlabel("Timestamp", fontsize=14)
+    plt.ylabel("Actual Node ID", fontsize=14)
+    plt.tick_params(axis='x', labelsize=12)
+    plt.tick_params(axis='y', labelsize=12)
+    plt.grid(axis='x', linestyle='-', zorder=1)
     node_colors = ["red" if node in straggler_node_list else "black" for node in node_list]
     for tick, color in zip(plt.yticks(node_list)[1], node_colors):
         tick.set_color(color)
+    plt.gca().set_axisbelow(True)
     plt.tight_layout()
     adjust_text(text, arrowprops=dict(arrowstyle='-', color='gray', lw=1, mutation_scale=15))
-    plt.savefig(args.output_dir + "/copy_sort_red.png")
+    plt.savefig(args.output_dir + "/" +  args.output_file_name)
     # MAKING ALL THE SCHED EVENT GRAPHS
 
 if __name__ == "__main__":
