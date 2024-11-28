@@ -102,19 +102,23 @@ class Node:
                     return
             temp_ticks -= self.tick_rate
             current_tick_latency = self.tick_latency
+            current_tick_rate = 1 / self.tick_rate
             # NODE PENALTY
             if self.node_id % 2 == 0:
                 if self.sched.node_progress_stats[self.node_id+1]["progress_score"] > 0 and self.sched.node_progress_stats[self.node_id+1]["progress_score"] < 1:
                     current_tick_latency = 1.05 * current_tick_latency
+                    current_tick_rate = 1.05 * current_tick_rate
             elif self.node_id % 2 == 1:
                 if self.sched.node_progress_stats[self.node_id-1]["progress_score"] > 0 and self.sched.node_progress_stats[self.node_id-1]["progress_score"] < 1:
                     current_tick_latency = 1.05 * current_tick_latency
+                    current_tick_rate = 1.05 * current_tick_rate
             else:
                 print("Running alone so NO PENALTY")
             # GLOBAL PENALTY
             current_tick_latency = current_tick_latency * 1.01 ** (len(self.sched.duplicate_tasks))
+            current_tick_rate = current_tick_rate * 1.01 ** (len(self.sched.duplicate_tasks))
             time.sleep(current_tick_latency)
-            t += current_tick_latency
+            t += current_tick_rate
             ret = self.sched.update_node_progress(self.node_id,(1 - max(0,temp_ticks/self.MAP_TOTAL_TICK)), t, task_id, dup)
         # once it is done, it should add a copy task to the list of tasks
         with self.sched.lock:
@@ -143,19 +147,23 @@ class Node:
                     return
             temp_ticks -= self.tick_rate
             current_tick_latency = self.tick_latency
+            current_tick_rate = 1 / self.tick_rate
             # NODE PENALTY
             if self.node_id % 2 == 0:
                 if self.sched.node_progress_stats[self.node_id+1]["progress_score"] > 0 and self.sched.node_progress_stats[self.node_id+1]["progress_score"] < 1:
                     current_tick_latency = 1.05 * current_tick_latency
+                    current_tick_rate = 1.05 * current_tick_rate
             elif self.node_id % 2 == 1:
                 if self.sched.node_progress_stats[self.node_id-1]["progress_score"] > 0 and self.sched.node_progress_stats[self.node_id-1]["progress_score"] < 1:
                     current_tick_latency = 1.05 * current_tick_latency
+                    current_tick_rate = 1.05 * current_tick_rate
             else:
                 print("Running alone so NO PENALTY")
             # GLOBAL PENALTY
             current_tick_latency = current_tick_latency * 1.01 ** (len(self.sched.duplicate_tasks))
+            current_tick_rate = current_tick_rate * 1.01 ** (len(self.sched.duplicate_tasks))
             time.sleep(current_tick_latency)
-            t += current_tick_latency
+            t += current_tick_rate
             ret = self.sched.update_node_progress(self.node_id, (1-max(0,temp_ticks/self.COPY_TOTAL_TICK))/3, t, task_id, dup)
         
         form_log(f"DONE-COPY: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
@@ -170,17 +178,20 @@ class Node:
                     return
             temp_ticks -= self.tick_rate
             current_tick_latency = self.tick_latency
+            current_tick_rate = 1 / self.tick_rate
             # NODE PENALTY
             if self.node_id % 2 == 0:
                 if self.sched.node_progress_stats[self.node_id+1]["progress_score"] > 0 and self.sched.node_progress_stats[self.node_id+1]["progress_score"] < 1:
                     current_tick_latency = 1.05 * current_tick_latency
+                    current_tick_rate = 1.05 * current_tick_rate
             elif self.node_id % 2 == 1:
                 if self.sched.node_progress_stats[self.node_id-1]["progress_score"] > 0 and self.sched.node_progress_stats[self.node_id-1]["progress_score"] < 1:
                     current_tick_latency = 1.05 * current_tick_latency
+                    current_tick_rate = 1.05 * current_tick_rate 
             else:
                 print("Running alone so NO PENALTY")
             time.sleep(current_tick_latency)
-            t += current_tick_latency
+            t += current_tick_rate
             ret = self.sched.update_node_progress(self.node_id, 1/3 + (1-max(0,temp_ticks/self.SORT_TOTAL_TICK))/3, t, task_id, dup)
         
         form_log(f"DONE-SORT: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}]")
@@ -199,18 +210,20 @@ class Node:
                     form_log(f"ABORT-REDUNDANT-RED: [TASK:{task_id}] : [NODE:{self.node_id}] : [DUP:{dup}] : [STAT:{self.sched.node_progress_stats[self.node_id]["progress_score"]}]")
                     return
             temp_ticks -= self.tick_rate
+            current_tick_rate = 1 / self.tick_rate
             # NODE PENALTY
-            current_tick_latency = self.tick_latency
             if self.node_id % 2 == 0:
                 if self.sched.node_progress_stats[self.node_id+1]["progress_score"] > 0 and self.sched.node_progress_stats[self.node_id+1]["progress_score"] < 1:
                     current_tick_latency = 1.05 * current_tick_latency
+                    current_tick_rate = 1.05 * current_tick_rate
             elif self.node_id % 2 == 1:
                 if self.sched.node_progress_stats[self.node_id-1]["progress_score"] > 0 and self.sched.node_progress_stats[self.node_id-1]["progress_score"] < 1:
                     current_tick_latency = 1.05 * current_tick_latency
+                    current_tick_rate = 1.05 * current_tick_rate 
             else:
                 print("Running alone so NO PENALTY")
             time.sleep(current_tick_latency)
-            t += current_tick_latency
+            t += current_tick_rate
             ret = self.sched.update_node_progress(self.node_id, 2/3 + (1-max(0,temp_ticks/self.REDUCE_TOTAL_TICK))/3, t, task_id, dup)
         
         with self.sched.lock:
